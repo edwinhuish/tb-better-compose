@@ -1,0 +1,197 @@
+name: Release
+
+# 什么时候跑：
+#   - push 版本标签（v1.2.3）：正常发布路径
+#   - workflow_dispatch：手动补发 / 首次发布。标签留空时用 v<manifest.json 的 version>，
+#     若这个标签还不存在，会在当前提交上创建（见最后一步的 --target）
+#
+# 版本号只有一个来源：manifest.json 的 version。compose/markdown.js 里的 VERSION
+# 必须与它一致，这一步由 tools/check-static.mjs 第 9 节在构建前强制校验。
+# 标签只负责「确认发布哪一个版本」，不负责定义版本号 —— 两者不一致直接失败，
+# 不会出现「标签写 v1.1.0、包内却是 1.0.0」这种最难查的事故。
+on:
+  push:
+    tags:
+      # 只认 v*.*.* ：v1.0.0、v1.2.10 都会进来，具体格式由下面的「解析版本号」严格校验
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要发布的标签（v1.2.3）。留空则用 v<manifest.json 的 version>'
+        required: false
+        type: string
+
+# 创建 Release、上传产物、必要时补打标签，都走仓库自带的 GITHUB_TOKEN。
+# 除此之外不需要任何自定义 secret：
+#   - 没有 npm token（tinymce / tinymce-i18n 都是公开包，npm ci 不需要认证）
+#   - 没有 ATN 凭据（上传 addons.thunderbird.net 仍是手动流程，见 PUBLISHING.md；
+#     将来若接 web-ext sign，凭据名是 WEB_EXT_API_KEY / WEB_EXT_API_SECRET，放在
+#     environment: release 里即可，届时只加一步、不动这里）
+permissions:
+  contents: write
+
+# 发布不允许被后来的推送挤掉：中途取消会留下一个只有半个产物的 Release。
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 打包并发布
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # 建议在仓库设置里给这个环境加保护规则（限定 admin 可部署 / 必填审批），
+    # 这样标签被误推时还有最后一道闸；不配置也能正常跑。
+    environment: release
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      INPUT_TAG: ${{ inputs.tag }}
+    steps:
+      # 生成发布说明要看完整历史与已有标签，所以不用默认的浅克隆
+      - name: 检出代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: 安装 Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          # 与 CI 矩阵里跑过的版本保持一致，保证「CI 绿的构建」和「发出去的构建」同源
+          node-version: '24.x'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: 安装依赖
+        run: npm ci --no-audit --no-fund
+
+      # 确定标签 + 版本号，并在这里把两者钉死。
+      # 标签格式不对、或与 manifest 不一致，都在这一步失败 —— 此时还没开始打包，
+      # 什么都不会被发布出去。
+      - name: 解析版本号
+        id: ver
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./manifest.json').version")
+
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            TAG="$GITHUB_REF_NAME"
+          else
+            TAG="${INPUT_TAG:-}"
+          fi
+          TAG="${TAG:-v$VERSION}"
+
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::标签必须是 v<主>.<次>.<修订>，收到：$TAG"
+            exit 1
+          fi
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::标签与 manifest.json 不一致：标签=$TAG，manifest=$VERSION"
+            echo "::error::先把 manifest.json 的 version 与 compose/markdown.js 的 VERSION 改成 ${TAG#v}，再重新打标签。"
+            exit 1
+          fi
+
+          # 标签不在 master 上只警告不拦：允许从维护分支出补丁版本，但让人看见
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && git rev-parse -q --verify origin/master >/dev/null; then
+            git merge-base --is-ancestor "$GITHUB_SHA" origin/master \
+              || echo "::warning::$TAG 指向的提交不在 master 上（从维护分支发的补丁版本？）"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "标签 $TAG ✓ 与 manifest 的 $VERSION 一致"
+
+      # 发布前把 CI 的那套流水线原样再跑一遍：标签推送不会触发 ci.yml，
+      # 靠 run_id/last CI 状态去猜反而更脆。这里多花的钱比发错包便宜。
+      # npm run build = check → xpi，与本地、与 CI 是同一条命令
+      # （哪一步失败由 npm 打印的 `> check:static` 这类前缀指明）。
+      - name: 检查并打包
+        run: npm run build
+
+      # 产物本来就落在 dist/，这里只当场验证「同样内容打两次字节一致」——
+      # 这是 PUBLISHING.md 承诺的可复现构建，也是 md5 对得上就说明包没被改过。
+      - name: 校验可复现并算摘要
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          mkdir -p dist
+
+          node tools/build-xpi.mjs dist/.repro-check.xpi
+          cmp "dist/better-compose-$VERSION.xpi" dist/.repro-check.xpi
+          rm -f dist/.repro-check.xpi
+
+          cd dist
+          sha256sum "better-compose-$VERSION.xpi" > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # 发布说明分两段：正文用 GitHub 自动生成的变更列表（按 PR/提交归类），
+      # 头尾补上安装步骤与产物清单 —— 用户从 Release 页下来只需要看这一屏。
+      - name: 生成发布说明
+        shell: bash
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+                 -f tag_name="$TAG" -f target_commitish="$GITHUB_SHA" --jq .body > generated.md 2>/dev/null; then
+            # 标签刚创建、或 API 临时抽风时退回提交列表，不让发布因此中断。
+            # 上一版标签存在就只列增量，否则列到该提交为止的最近 30 条。
+            echo "::warning::自动生成发布说明失败，退回提交列表"
+            PREV=$(git describe --tags --abbrev=0 "$GITHUB_SHA^" 2>/dev/null || true)
+            if [ -n "$PREV" ]; then RANGE="$PREV..$GITHUB_SHA"; else RANGE="$GITHUB_SHA"; fi
+            git log --no-merges --max-count=30 --pretty='- %s (%h)' "$RANGE" > generated.md
+          fi
+
+          {
+            echo "## BetterCompose $VERSION"
+            echo
+            cat generated.md
+            echo
+            echo "## 安装"
+            echo
+            echo "1. 下载 \`better-compose-$VERSION.xpi\`"
+            echo "2. Thunderbird → 工具 → 附加组件和主题 → 齿轮 → 从文件安装附加组件"
+            echo
+            echo "## 产物"
+            echo
+            echo "| 文件 | 说明 |"
+            echo "|---|---|"
+            echo "| \`better-compose-$VERSION.xpi\` | 扩展包（可复现构建） |"
+            echo "| \`SHA256SUMS.txt\` | SHA-256 校验和，\`sha256sum -c SHA256SUMS.txt\` |"
+            echo
+            echo "上架 addons.thunderbird.net 仍是手动流程，见 PUBLISHING.md。"
+          } > release-notes.md
+
+          cat release-notes.md
+
+      # 幂等：已经存在同名 Release（重跑、或先手动建过）就更新说明并覆盖产物，
+      # 而不是红着脸报「已存在」。
+      - name: 创建或更新 Release
+        shell: bash
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          ASSETS=("dist/better-compose-$VERSION.xpi" "dist/SHA256SUMS.txt")
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG 已存在，更新说明并覆盖产物"
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+            gh release edit "$TAG" --title "BetterCompose $TAG" --notes-file release-notes.md
+          elif git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            gh release create "$TAG" "${ASSETS[@]}" \
+              --title "BetterCompose $TAG" \
+              --notes-file release-notes.md \
+              --verify-tag
+          else
+            # 手动触发且标签还不存在：在触发时的提交上建标签（不打到默认分支头上）
+            gh release create "$TAG" "${ASSETS[@]}" \
+              --title "BetterCompose $TAG" \
+              --notes-file release-notes.md \
+              --target "$GITHUB_SHA"
+          fi
+
+          echo "发布完成：$(gh release view "$TAG" --json url --jq .url)"

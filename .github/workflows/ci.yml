@@ -1,0 +1,110 @@
+name: CI
+
+# 什么时候跑：
+#   - push 到 master（合并后的最终确认）
+#   - 任何指向 master 的 PR（评审前先把红灯亮出来）
+#   - 手动触发（workflow_dispatch）
+# 只在 master 上跑，是因为这个仓库只有一条开发线；多分支时把 branches 加上即可。
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+# 默认最小权限：CI 只读代码，不需要任何写能力
+permissions:
+  contents: read
+
+# 同一个分支连续推送时，取消上一次还在跑的任务（PR 尤其需要，省 runner 也省等待）。
+# master 的推送不取消：那是存档记录，宁可排队也要跑完。
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: ${{ matrix.os }} · Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      # 一个平台红不代表其它平台也红：别让 fail-fast 把诊断信息掐掉
+      fail-fast: false
+      matrix:
+        # 全量跑在 Linux 上（便宜），macOS/Windows 只跑一次当前版本 —— 这两个平台的
+        # 真实差异在「bash 脚本能不能跑通」，跟 Node 小版本无关。
+        # 22 是 package.json engines 的下限，26 是当前版本。加新版本时记得同步 engines。
+        include:
+          - { os: ubuntu-latest,  node: '22.x' }
+          - { os: ubuntu-latest,  node: '24.x' }
+          - { os: ubuntu-latest,  node: '26.x' }
+          - { os: macos-latest,   node: '26.x' }
+          - { os: windows-latest, node: '26.x' }
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: 安装 Node ${{ matrix.node }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          # 缓存键跟着 package-lock.json 走：锁文件不变就命中，变了自动重建。
+          # 唯一的外部依赖是 TinyMCE（tinymce + tinymce-i18n，解包后约 40 MB），
+          # 缓存命中能把「装依赖」压到几秒。
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # 用 npm ci 而不是 npm install：锁文件必须与 package.json 完全一致，
+      # 否则产物就不可复现了。这一步的 postinstall 会把 TinyMCE 提取到
+      # vendor/tinymce（生成物，不在仓库里）—— 打包全靠那份。
+      - name: 安装依赖
+        run: npm ci --no-audit --no-fund
+
+      # 静态校验 + 文案一致性 + 三个纯函数单测（共 82 条断言）
+      - name: 代码检查与测试
+        run: npm run check
+
+      # 打包链路本身也要在 CI 里跑一次：它坏掉比代码坏掉更难发现。
+      # npm run build 是 check + xpi 的完整流水线，三个平台原生可跑
+      # （以前要 shell: bash 才能跑 build.sh，Windows 上靠 Git Bash）。
+      - name: 打包 xpi
+        run: npm run build
+
+      # 可复现构建是 PUBLISHING.md 里写明的承诺（时间戳固定在 2020-01-01），
+      # 有人改了 build-xpi.mjs 里的头信息就会打破它 —— 这里连打两次比字节。
+      - name: 校验构建可复现
+        if: matrix.os == 'ubuntu-latest' && matrix.node == '24.x'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/build-xpi.mjs dist/repro-a.xpi
+          node tools/build-xpi.mjs dist/repro-b.xpi
+          cmp dist/repro-a.xpi dist/repro-b.xpi
+          echo "两次构建字节一致"
+
+      # 只有一处上传，避免同一份产物在 5 个 job 里各存一份
+      - name: 上传 xpi 产物
+        if: matrix.os == 'ubuntu-latest' && matrix.node == '24.x'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: better-compose-xpi
+          path: dist/better-compose-*.xpi
+          if-no-files-found: error
+          retention-days: 7
+
+  # 矩阵里任何一个组合挂掉，这个 job 就红。分支保护只勾这一个检查项即可，
+  # 免得每次往矩阵里加版本都要回设置页改一遍。
+  ci-success:
+    name: CI 通过
+    needs: [check]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 汇总矩阵结果
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "矩阵中存在失败或被取消的任务"
+          exit 1
+      - name: 全部通过
+        run: echo "所有平台与 Node 版本均通过"

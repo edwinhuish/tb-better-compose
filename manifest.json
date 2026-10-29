@@ -1,0 +1,49 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_app_name__",
+  "version": "1.0.0",
+  "description": "__MSG_app_description__",
+  "default_locale": "en",
+  "author": "Edwin",
+  "homepage_url": "https://github.com/edwinhuish/tb-better-compose",
+  "developer": {
+    "name": "Edwin",
+    "url": "https://github.com/edwinhuish"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "better-compose@edwinhuish.github.io",
+      "strict_min_version": "115.0"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": false
+  },
+  "permissions": [
+    "compose",
+    "storage"
+  ],
+  "web_accessible_resources": [
+    "vendor/tinymce/tinymce.min.js",
+    "vendor/tinymce/langs/*.js",
+    "vendor/tinymce/themes/*/*.js",
+    "vendor/tinymce/models/*/*.js",
+    "vendor/tinymce/icons/*/*.js",
+    "vendor/tinymce/plugins/*/*.js",
+    "vendor/tinymce/plugins/emoticons/js/*.js",
+    "vendor/tinymce/skins/*/*/*.css",
+    "compose/*",
+    "_locales/*/messages.json"
+  ]
+}

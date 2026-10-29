@@ -1,0 +1,515 @@
+{
+  "app_name": {
+    "message": "BetterCompose"
+  },
+  "app_description": {
+    "message": "Однострочная панель инструментов и сворачивающиеся меню слева в окне написания Thunderbird; изображения идут через собственный механизм moz-do-not-send Thunderbird, а не встраиваются в base64."
+  },
+
+  "banner_loading": {
+    "message": "Загрузка BetterCompose…"
+  },
+  "banner_load_failed": {
+    "message": "Не удалось загрузить BetterCompose: $1 (обычный редактор по-прежнему работает)"
+  },
+  "banner_init_failed": {
+    "message": "Не удалось запустить BetterCompose: $1 (нажмите, чтобы закрыть; обычный редактор по-прежнему работает)"
+  },
+  "banner_not_ready": {
+    "message": "BetterCompose не готов через 8 с — нажмите Ctrl+Shift+J и поищите ошибки [BetterCompose]"
+  },
+  "banner_click_close": {
+    "message": "Нажмите, чтобы закрыть"
+  },
+
+  "block_body": {
+    "message": "Основной текст"
+  },
+  "block_paragraph": {
+    "message": "Абзац"
+  },
+  "block_heading": {
+    "message": "Заголовок $1"
+  },
+  "block_pre": {
+    "message": "Форматированный"
+  },
+
+  "tb_menu": {
+    "message": "Меню"
+  },
+  "tb_menu_tip": {
+    "message": "Правка, формат, вставка, таблица, вид"
+  },
+  "tb_font_tip": {
+    "message": "Шрифт (показывает текущий шрифт)"
+  },
+  "tb_size_tip": {
+    "message": "Размер шрифта (показывает текущий размер)"
+  },
+  "tb_block_tip": {
+    "message": "Стиль абзаца (показывает текущий стиль)"
+  },
+  "tb_emoji_tip": {
+    "message": "Эмодзи"
+  },
+
+  "align_left": {
+    "message": "По левому краю"
+  },
+  "align_center": {
+    "message": "По центру"
+  },
+  "align_right": {
+    "message": "По правому краю"
+  },
+
+  "fp_tooltip": {
+    "message": "Копировать формат: нажмите один раз, чтобы взять образец, затем выделите текст для применения. Остаётся активным; нажмите снова или Esc, чтобы выйти"
+  },
+  "fp_need_selection": {
+    "message": "Поставьте курсор в текст, с которого нужно взять формат, или выделите его"
+  },
+  "fp_sampled": {
+    "message": "Формат скопирован. Выделите нужный текст; остаётся активным, Esc — выход"
+  },
+
+  "menu_undo": {
+    "message": "Отменить"
+  },
+  "menu_redo": {
+    "message": "Повторить"
+  },
+  "menu_clipboard": {
+    "message": "Буфер обмена"
+  },
+  "menu_format": {
+    "message": "Формат"
+  },
+  "menu_insert": {
+    "message": "Вставка"
+  },
+  "menu_table": {
+    "message": "Таблица"
+  },
+  "menu_view": {
+    "message": "Вид"
+  },
+  "menu_find_replace": {
+    "message": "Найти и заменить…"
+  },
+
+  "clip_cut": {
+    "message": "Вырезать"
+  },
+  "clip_copy": {
+    "message": "Копировать"
+  },
+  "clip_paste": {
+    "message": "Вставить"
+  },
+  "clip_select_all": {
+    "message": "Выделить всё"
+  },
+
+  "fmt_block": {
+    "message": "Стиль абзаца"
+  },
+  "fmt_mark_red": {
+    "message": "Выделить красным"
+  },
+  "fmt_text_color": {
+    "message": "Цвет текста"
+  },
+  "fmt_back_color": {
+    "message": "Цвет фона"
+  },
+  "fmt_highlight": {
+    "message": "Выделение"
+  },
+  "fmt_size": {
+    "message": "Размер шрифта"
+  },
+  "fmt_bold": {
+    "message": "Полужирный"
+  },
+  "fmt_italic": {
+    "message": "Курсив"
+  },
+  "fmt_underline": {
+    "message": "Подчёркнутый"
+  },
+  "fmt_strike": {
+    "message": "Зачёркнутый"
+  },
+  "fmt_list_bullet": {
+    "message": "Маркированный список"
+  },
+  "fmt_list_number": {
+    "message": "Нумерованный список"
+  },
+  "fmt_clear": {
+    "message": "Очистить формат"
+  },
+
+  "ins_image": {
+    "message": "Изображение…"
+  },
+  "ins_link": {
+    "message": "Ссылка…"
+  },
+  "ins_table": {
+    "message": "Таблица…"
+  },
+  "ins_hr": {
+    "message": "Горизонтальная линия"
+  },
+  "ins_charmap": {
+    "message": "Специальный символ…"
+  },
+  "ins_date": {
+    "message": "Текущая дата"
+  },
+  "ins_time": {
+    "message": "Текущее время"
+  },
+  "ins_anchor": {
+    "message": "Якорь…"
+  },
+
+  "tbl_insert": {
+    "message": "Вставить таблицу…"
+  },
+  "tbl_row_above": {
+    "message": "Вставить строку выше"
+  },
+  "tbl_row_below": {
+    "message": "Вставить строку ниже"
+  },
+  "tbl_row_delete": {
+    "message": "Удалить строку"
+  },
+  "tbl_col_before": {
+    "message": "Вставить столбец слева"
+  },
+  "tbl_col_after": {
+    "message": "Вставить столбец справа"
+  },
+  "tbl_col_delete": {
+    "message": "Удалить столбец"
+  },
+  "tbl_merge": {
+    "message": "Объединить ячейки"
+  },
+  "tbl_split": {
+    "message": "Разделить ячейку"
+  },
+  "tbl_delete": {
+    "message": "Удалить таблицу"
+  },
+
+  "view_source": {
+    "message": "Исходный код HTML…"
+  },
+  "view_fullscreen": {
+    "message": "Полный экран"
+  },
+  "view_blocks": {
+    "message": "Показать границы блоков"
+  },
+
+  "color_light_green": {
+    "message": "Светло-зелёный"
+  },
+  "color_light_yellow": {
+    "message": "Светло-жёлтый"
+  },
+  "color_light_red": {
+    "message": "Светло-красный"
+  },
+  "color_light_purple": {
+    "message": "Светло-фиолетовый"
+  },
+  "color_light_blue": {
+    "message": "Светло-голубой"
+  },
+  "color_green": {
+    "message": "Зелёный"
+  },
+  "color_yellow": {
+    "message": "Жёлтый"
+  },
+  "color_red": {
+    "message": "Красный"
+  },
+  "color_purple": {
+    "message": "Фиолетовый"
+  },
+  "color_blue": {
+    "message": "Синий"
+  },
+  "color_dark_cyan": {
+    "message": "Тёмно-бирюзовый"
+  },
+  "color_orange": {
+    "message": "Оранжевый"
+  },
+  "color_dark_red": {
+    "message": "Тёмно-красный"
+  },
+  "color_dark_purple": {
+    "message": "Тёмно-фиолетовый"
+  },
+  "color_dark_blue": {
+    "message": "Тёмно-синий"
+  },
+  "color_light_gray": {
+    "message": "Светло-серый"
+  },
+  "color_mid_gray": {
+    "message": "Средне-серый"
+  },
+  "color_gray": {
+    "message": "Серый"
+  },
+  "color_dark_gray": {
+    "message": "Тёмно-серый"
+  },
+  "color_navy": {
+    "message": "Чернильный"
+  },
+  "color_black": {
+    "message": "Чёрный"
+  },
+  "color_white": {
+    "message": "Белый"
+  },
+
+  "hl_yellow": {
+    "message": "Жёлтый"
+  },
+  "hl_gray": {
+    "message": "Серый"
+  },
+  "hl_none": {
+    "message": "Нет"
+  },
+
+  "size_default": {
+    "message": "По умолчанию"
+  },
+
+  "font_system": {
+    "message": "Системный по умолчанию"
+  },
+  "font_sim_sun": {
+    "message": "SimSun"
+  },
+  "font_sim_sun_short": {
+    "message": "SimSun"
+  },
+  "font_ya_hei": {
+    "message": "Microsoft YaHei"
+  },
+  "font_ya_hei_short": {
+    "message": "YaHei"
+  },
+  "font_sim_hei": {
+    "message": "SimHei"
+  },
+  "font_sim_hei_short": {
+    "message": "SimHei"
+  },
+  "font_kai_ti": {
+    "message": "KaiTi"
+  },
+  "font_kai_ti_short": {
+    "message": "KaiTi"
+  },
+
+  "grp_custom": {
+    "message": "Свои"
+  },
+  "grp_edit": {
+    "message": "Правка"
+  },
+  "grp_format": {
+    "message": "Формат"
+  },
+  "grp_align": {
+    "message": "Выравнивание"
+  },
+  "grp_list": {
+    "message": "Списки"
+  },
+  "grp_insert": {
+    "message": "Вставка и вид"
+  },
+
+  "btn_custom_menu": {
+    "message": "Кнопка меню"
+  },
+  "btn_custom_font": {
+    "message": "Выбор шрифта"
+  },
+  "btn_custom_size": {
+    "message": "Выбор размера"
+  },
+  "btn_custom_block": {
+    "message": "Выбор стиля абзаца"
+  },
+  "btn_custom_painter": {
+    "message": "Копировать формат"
+  },
+  "btn_custom_emoji": {
+    "message": "Эмодзи"
+  },
+  "btn_undo": {
+    "message": "Отменить"
+  },
+  "btn_redo": {
+    "message": "Повторить"
+  },
+  "btn_pastetext": {
+    "message": "Вставить как обычный текст"
+  },
+  "btn_subscript": {
+    "message": "Нижний индекс"
+  },
+  "btn_superscript": {
+    "message": "Верхний индекс"
+  },
+  "btn_blocks": {
+    "message": "Список стилей абзаца"
+  },
+  "btn_align_justify": {
+    "message": "По ширине"
+  },
+  "btn_outdent": {
+    "message": "Уменьшить отступ"
+  },
+  "btn_indent": {
+    "message": "Увеличить отступ"
+  },
+  "btn_datetime": {
+    "message": "Дата и время"
+  },
+  "btn_code": {
+    "message": "Исходный код HTML"
+  },
+  "btn_preview": {
+    "message": "Предпросмотр"
+  },
+
+  "opt_title": {
+    "message": "Настройки BetterCompose"
+  },
+  "opt_intro": {
+    "message": "Эти настройки действуют только в окне написания. Остальная часть Thunderbird не меняется."
+  },
+  "opt_reopen": {
+    "message": "Изменения применяются к окнам написания, открытым после сохранения."
+  },
+  "sec_toolbar": {
+    "message": "Панель инструментов"
+  },
+  "opt_toolbar_hint": {
+    "message": "Кнопки идут в этом порядке. Разделитель делит группы — не поместившиеся группы панель сворачивает в меню «ещё», поэтому редко используемые ставьте в конец."
+  },
+  "opt_toolbar_add": {
+    "message": "Добавить кнопку…"
+  },
+  "opt_toolbar_sep": {
+    "message": "Добавить разделитель"
+  },
+  "opt_toolbar_reset": {
+    "message": "Сбросить панель"
+  },
+  "opt_toolbar_empty": {
+    "message": "Панель пуста, будет использована раскладка по умолчанию."
+  },
+  "opt_toolbar_unknown": {
+    "message": "Неизвестная кнопка пропущена: $1"
+  },
+  "sec_block": {
+    "message": "Стили абзацев"
+  },
+  "opt_block_hint": {
+    "message": "По одному стилю в строке, в виде имя=тег. Допустимые теги: p, div, h1–h6, pre, blockquote."
+  },
+  "opt_block_default": {
+    "message": "Стиль новых абзацев"
+  },
+  "opt_block_invalid": {
+    "message": "Неизвестный тег пропущен: $1"
+  },
+  "sec_markdown": {
+    "message": "Markdown"
+  },
+  "opt_markdown_label": {
+    "message": "Преобразовывать вставленный Markdown в форматированный текст"
+  },
+  "opt_markdown_hint": {
+    "message": "Преобразуется только простой текст; содержимое с настоящим форматированием (скопированное со страницы или из Word) вставляется как есть. Одно нажатие «Отменить» вернёт исходный текст."
+  },
+  "sec_language": {
+    "message": "Язык"
+  },
+  "opt_language_label": {
+    "message": "Язык интерфейса"
+  },
+  "opt_language_auto": {
+    "message": "Как в Thunderbird"
+  },
+  "opt_language_hint": {
+    "message": "Действует и на эту страницу, и на редактор в окне написания."
+  },
+  "sec_advanced": {
+    "message": "Дополнительно"
+  },
+  "opt_debug_label": {
+    "message": "Писать диагностику в консоль"
+  },
+  "opt_debug_hint": {
+    "message": "Нужно только при сообщении о проблеме. После выключите — вывод очень шумный."
+  },
+  "opt_raw_label": {
+    "message": "Сохранённая конфигурация"
+  },
+  "opt_raw_hint": {
+    "message": "Сохраняются только значения, отличные от значений по умолчанию, поэтому значения по умолчанию (включая переведённые названия стилей) продолжают следовать языку интерфейса."
+  },
+  "btn_save": {
+    "message": "Сохранить"
+  },
+  "btn_reset_all": {
+    "message": "Вернуть значения по умолчанию"
+  },
+  "status_saved": {
+    "message": "Сохранено"
+  },
+  "status_unchanged": {
+    "message": "Изменений нет"
+  },
+  "status_error": {
+    "message": "Не удалось сохранить: $1"
+  },
+  "confirm_reset": {
+    "message": "Вернуть все настройки на этой странице к значениям по умолчанию?"
+  },
+  "opt_empty": {
+    "message": "Пусто"
+  },
+  "btn_cancel": {
+    "message": "Отмена"
+  },
+  "btn_ok": {
+    "message": "ОК"
+  },
+  "status_dirty": {
+    "message": "Есть несохранённые изменения"
+  },
+  "confirm_discard": {
+    "message": "Отменить несохранённые изменения?"
+  }
+}

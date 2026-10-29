@@ -1,0 +1,341 @@
+/*
+ * 选项页样式。
+ *
+ * 这一页现在主要活在附加组件管理器的**内嵌框**里（manifest 的
+ * options_ui.open_in_tab = false）：宽度只有 600px 上下，高度由 iframe 决定。
+ * 所以几条硬约束：
+ *   - 不做「一整页」的版式（大标题、居中留白），那是独立标签页才有的东西；
+ *   - 按钮贴底用 position: sticky，滚到哪儿都够得着；
+ *   - 窄到 600px 时表单要能自己叠起来，不能横向溢出；
+ *   - 颜色跟系统明暗走，别自带一套调色板 —— 深色主题下白底卡片非常刺眼。
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --bg: #f7f7f8;
+  --card: #ffffff;
+  --text: #16181d;
+  --muted: #5b6472;
+  --line: #dfe2e7;
+  --accent: #2b6cb0;
+  --on-accent: #ffffff;
+  --chip: #eef1f5;
+  --chip-line: #d8dde4;
+  --warn: #a3312a;
+  --dirty: #8a5a00;
+  --code-bg: #f2f3f5;
+  --radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1d20;
+    --card: #25262a;
+    --text: #eceef1;
+    --muted: #a6adb8;
+    --line: #3a3c42;
+    --accent: #5b9bd5;
+    --on-accent: #10131a;
+    --chip: #2f3137;
+    --chip-line: #45484f;
+    --warn: #ff8b80;
+    --dirty: #e0b252;
+    --code-bg: #1a1b1e;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.6 system-ui, -apple-system, "Segoe UI", "Noto Sans CJK SC", sans-serif;
+}
+
+/* 内嵌时让宿主的背景透出来，别在卡片外围再叠一层灰 */
+html.embedded body { background: transparent; }
+
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 22px 20px 28px;
+}
+
+html.embedded .page {
+  max-width: none;
+  padding: 4px 2px 8px;
+}
+
+.head h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+/* 内嵌时宿主已经显示了扩展名，这里再来一个大标题就是重复 */
+html.embedded .head h1 { display: none; }
+
+.lead {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px 16px;
+  margin-bottom: 12px;
+}
+
+.card h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.warn {
+  margin: 8px 0 0;
+  color: var(--warn);
+  font-size: 12px;
+}
+
+/* ── 工具栏 chips ─────────────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  min-height: 46px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px 2px 8px;
+  background: var(--chip);
+  border: 1px solid var(--chip-line);
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.chip-label {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 分组竖线：和工具栏上的「|」是同一个东西，所以长得也像 */
+.chip.sep {
+  padding: 2px 6px;
+  border-style: dashed;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.chip button {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  line-height: 1;
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.chip button:hover { background: var(--chip-line); color: var(--text); }
+.chip button:disabled { opacity: .35; cursor: default; background: transparent; }
+
+/* ── 表单 ─────────────────────────────────────────────────────────────── */
+.row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.grow { flex: 1 1 200px; }
+
+select,
+textarea,
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 5px 9px;
+}
+
+/* 与附加组件管理器里的控件同高，避免一行里挤出两种高度 */
+select,
+button { min-height: 30px; }
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: ui-monospace, "SF Mono", Consolas, "Noto Sans Mono CJK SC", monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  background: var(--code-bg);
+}
+
+button { cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+
+button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+button.primary:hover:not(:disabled) { filter: brightness(1.06); }
+
+/* 键盘用户必须看得见焦点：宿主页面的焦点环不会透进 iframe */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.field > span { flex: 0 0 auto; }
+.field > select { flex: 1 1 auto; max-width: 320px; }
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.check input { margin: 3px 0 0; }
+
+/* ── 原始配置 ─────────────────────────────────────────────────────────── */
+.raw { margin-top: 14px; }
+.raw summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+
+.code {
+  margin: 8px 0 0;
+  padding: 10px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text);
+}
+
+/* ── 底部操作区 ───────────────────────────────────────────────────────── */
+/* 贴底且不透明：内嵌时 iframe 高度有限，内容会从这条操作区底下滑过去，
+   半透明会让两层文字叠在一起，非常难读。 */
+.foot {
+  position: sticky;
+  bottom: 0;
+  margin-top: 4px;
+  padding: 10px 0 6px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px 10px;
+  flex-wrap: wrap;
+}
+
+.btns {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status.ok { color: #2e7d32; }
+.status.err { color: var(--warn); }
+.status.dirty { color: var(--dirty); font-weight: 600; }
+
+@media (prefers-color-scheme: dark) {
+  .status.ok { color: #7bc67e; }
+}
+
+/* ── 确认框 ───────────────────────────────────────────────────────────── */
+.dialog {
+  max-width: 420px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .28);
+}
+
+.dialog::backdrop { background: rgba(0, 0, 0, .35); }
+
+.dialog-inner { margin: 0; padding: 18px; }
+
+.dialog-text { margin: 0 0 16px; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ── 窄宽度（内嵌时的常态）───────────────────────────────────────────── */
+@media (max-width: 620px) {
+  .page { padding: 14px 12px 24px; }
+
+  .card { padding: 12px 12px 14px; }
+
+  /* 标签与控件上下叠，不挤压下拉框 */
+  .field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .field > select { max-width: none; }
+
+  .chip-label { max-width: 116px; }
+
+  /* 状态独占一行，按钮靠右、保持自身宽度 —— 和 Thunderbird 的对话框一致 */
+  .status { order: -1; width: 100%; }
+  .btns { width: 100%; margin-left: 0; justify-content: flex-end; }
+}

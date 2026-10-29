@@ -1,0 +1,515 @@
+{
+  "app_name": {
+    "message": "寫信增強 BetterCompose"
+  },
+  "app_description": {
+    "message": "為 Thunderbird 撰寫視窗換上單列工具列與左側收合選單；圖片走 Thunderbird 自帶的 moz-do-not-send 通路，不再把 base64 塞進內文。"
+  },
+
+  "banner_loading": {
+    "message": "BetterCompose 載入中…"
+  },
+  "banner_load_failed": {
+    "message": "BetterCompose 載入失敗：$1（編輯區仍可用）"
+  },
+  "banner_init_failed": {
+    "message": "BetterCompose 初始化失敗：$1（點此關閉，原生編輯區仍可用）"
+  },
+  "banner_not_ready": {
+    "message": "BetterCompose 8 秒未就緒 —— 按 Ctrl+Shift+J，看 [BetterCompose] 的錯誤"
+  },
+  "banner_click_close": {
+    "message": "點擊關閉"
+  },
+
+  "block_body": {
+    "message": "內文"
+  },
+  "block_paragraph": {
+    "message": "段落"
+  },
+  "block_heading": {
+    "message": "標題 $1"
+  },
+  "block_pre": {
+    "message": "預先格式化"
+  },
+
+  "tb_menu": {
+    "message": "選單"
+  },
+  "tb_menu_tip": {
+    "message": "編輯、格式、插入、表格、檢視"
+  },
+  "tb_font_tip": {
+    "message": "字型（顯示目前字型）"
+  },
+  "tb_size_tip": {
+    "message": "字型大小（顯示目前字級）"
+  },
+  "tb_block_tip": {
+    "message": "段落格式（顯示目前區塊格式）"
+  },
+  "tb_emoji_tip": {
+    "message": "表情符號"
+  },
+
+  "align_left": {
+    "message": "靠左對齊"
+  },
+  "align_center": {
+    "message": "置中"
+  },
+  "align_right": {
+    "message": "靠右對齊"
+  },
+
+  "fp_tooltip": {
+    "message": "複製格式：點一下取樣，之後選取文字即套用；可連續套用，再點或按 Esc 結束"
+  },
+  "fp_need_selection": {
+    "message": "先把游標放進要取樣的文字裡，或選取它"
+  },
+  "fp_sampled": {
+    "message": "已取樣：選取目標文字即套用，可連續套用，Esc 結束"
+  },
+
+  "menu_undo": {
+    "message": "復原"
+  },
+  "menu_redo": {
+    "message": "取消復原"
+  },
+  "menu_clipboard": {
+    "message": "剪貼簿"
+  },
+  "menu_format": {
+    "message": "格式"
+  },
+  "menu_insert": {
+    "message": "插入"
+  },
+  "menu_table": {
+    "message": "表格"
+  },
+  "menu_view": {
+    "message": "檢視"
+  },
+  "menu_find_replace": {
+    "message": "尋找與取代…"
+  },
+
+  "clip_cut": {
+    "message": "剪下"
+  },
+  "clip_copy": {
+    "message": "複製"
+  },
+  "clip_paste": {
+    "message": "貼上"
+  },
+  "clip_select_all": {
+    "message": "全選"
+  },
+
+  "fmt_block": {
+    "message": "段落格式"
+  },
+  "fmt_mark_red": {
+    "message": "標紅"
+  },
+  "fmt_text_color": {
+    "message": "文字顏色"
+  },
+  "fmt_back_color": {
+    "message": "背景顏色"
+  },
+  "fmt_highlight": {
+    "message": "背景醒目"
+  },
+  "fmt_size": {
+    "message": "字級"
+  },
+  "fmt_bold": {
+    "message": "粗體"
+  },
+  "fmt_italic": {
+    "message": "斜體"
+  },
+  "fmt_underline": {
+    "message": "底線"
+  },
+  "fmt_strike": {
+    "message": "刪除線"
+  },
+  "fmt_list_bullet": {
+    "message": "項目符號清單"
+  },
+  "fmt_list_number": {
+    "message": "編號清單"
+  },
+  "fmt_clear": {
+    "message": "清除格式"
+  },
+
+  "ins_image": {
+    "message": "圖片…"
+  },
+  "ins_link": {
+    "message": "連結…"
+  },
+  "ins_table": {
+    "message": "表格…"
+  },
+  "ins_hr": {
+    "message": "分隔線"
+  },
+  "ins_charmap": {
+    "message": "特殊字元…"
+  },
+  "ins_date": {
+    "message": "目前日期"
+  },
+  "ins_time": {
+    "message": "目前時間"
+  },
+  "ins_anchor": {
+    "message": "錨點…"
+  },
+
+  "tbl_insert": {
+    "message": "插入表格…"
+  },
+  "tbl_row_above": {
+    "message": "在上方插入列"
+  },
+  "tbl_row_below": {
+    "message": "在下方插入列"
+  },
+  "tbl_row_delete": {
+    "message": "刪除目前列"
+  },
+  "tbl_col_before": {
+    "message": "在左側插入欄"
+  },
+  "tbl_col_after": {
+    "message": "在右側插入欄"
+  },
+  "tbl_col_delete": {
+    "message": "刪除目前欄"
+  },
+  "tbl_merge": {
+    "message": "合併儲存格"
+  },
+  "tbl_split": {
+    "message": "分割儲存格"
+  },
+  "tbl_delete": {
+    "message": "刪除表格"
+  },
+
+  "view_source": {
+    "message": "HTML 原始碼…"
+  },
+  "view_fullscreen": {
+    "message": "全螢幕"
+  },
+  "view_blocks": {
+    "message": "顯示區塊框線"
+  },
+
+  "color_light_green": {
+    "message": "淺綠色"
+  },
+  "color_light_yellow": {
+    "message": "淺黃色"
+  },
+  "color_light_red": {
+    "message": "淺紅色"
+  },
+  "color_light_purple": {
+    "message": "淺紫色"
+  },
+  "color_light_blue": {
+    "message": "淺藍色"
+  },
+  "color_green": {
+    "message": "綠色"
+  },
+  "color_yellow": {
+    "message": "黃色"
+  },
+  "color_red": {
+    "message": "紅色"
+  },
+  "color_purple": {
+    "message": "紫色"
+  },
+  "color_blue": {
+    "message": "藍色"
+  },
+  "color_dark_cyan": {
+    "message": "深青色"
+  },
+  "color_orange": {
+    "message": "橙色"
+  },
+  "color_dark_red": {
+    "message": "暗紅色"
+  },
+  "color_dark_purple": {
+    "message": "深紫色"
+  },
+  "color_dark_blue": {
+    "message": "深藍色"
+  },
+  "color_light_gray": {
+    "message": "淺灰色"
+  },
+  "color_mid_gray": {
+    "message": "中灰色"
+  },
+  "color_gray": {
+    "message": "灰色"
+  },
+  "color_dark_gray": {
+    "message": "深灰色"
+  },
+  "color_navy": {
+    "message": "藏青色"
+  },
+  "color_black": {
+    "message": "黑色"
+  },
+  "color_white": {
+    "message": "白色"
+  },
+
+  "hl_yellow": {
+    "message": "黃色"
+  },
+  "hl_gray": {
+    "message": "灰色"
+  },
+  "hl_none": {
+    "message": "無"
+  },
+
+  "size_default": {
+    "message": "預設"
+  },
+
+  "font_system": {
+    "message": "系統預設"
+  },
+  "font_sim_sun": {
+    "message": "SimSun"
+  },
+  "font_sim_sun_short": {
+    "message": "SimSun"
+  },
+  "font_ya_hei": {
+    "message": "Microsoft YaHei"
+  },
+  "font_ya_hei_short": {
+    "message": "YaHei"
+  },
+  "font_sim_hei": {
+    "message": "SimHei"
+  },
+  "font_sim_hei_short": {
+    "message": "SimHei"
+  },
+  "font_kai_ti": {
+    "message": "KaiTi"
+  },
+  "font_kai_ti_short": {
+    "message": "KaiTi"
+  },
+
+  "grp_custom": {
+    "message": "自訂"
+  },
+  "grp_edit": {
+    "message": "編輯"
+  },
+  "grp_format": {
+    "message": "格式"
+  },
+  "grp_align": {
+    "message": "對齊"
+  },
+  "grp_list": {
+    "message": "清單"
+  },
+  "grp_insert": {
+    "message": "插入與檢視"
+  },
+
+  "btn_custom_menu": {
+    "message": "選單按鈕"
+  },
+  "btn_custom_font": {
+    "message": "字型選擇"
+  },
+  "btn_custom_size": {
+    "message": "字級選擇"
+  },
+  "btn_custom_block": {
+    "message": "段落格式選擇"
+  },
+  "btn_custom_painter": {
+    "message": "複製格式"
+  },
+  "btn_custom_emoji": {
+    "message": "表情符號"
+  },
+  "btn_undo": {
+    "message": "復原"
+  },
+  "btn_redo": {
+    "message": "取消復原"
+  },
+  "btn_pastetext": {
+    "message": "貼上為純文字"
+  },
+  "btn_subscript": {
+    "message": "下標"
+  },
+  "btn_superscript": {
+    "message": "上標"
+  },
+  "btn_blocks": {
+    "message": "段落格式下拉"
+  },
+  "btn_align_justify": {
+    "message": "左右對齊"
+  },
+  "btn_outdent": {
+    "message": "減少縮排"
+  },
+  "btn_indent": {
+    "message": "增加縮排"
+  },
+  "btn_datetime": {
+    "message": "日期與時間"
+  },
+  "btn_code": {
+    "message": "HTML 原始碼"
+  },
+  "btn_preview": {
+    "message": "預覽"
+  },
+
+  "opt_title": {
+    "message": "BetterCompose 設定"
+  },
+  "opt_intro": {
+    "message": "這些設定只作用於撰寫視窗，Thunderbird 其他部分不受影響。"
+  },
+  "opt_reopen": {
+    "message": "變更對之後新開的撰寫視窗生效。"
+  },
+  "sec_toolbar": {
+    "message": "工具列"
+  },
+  "opt_toolbar_hint": {
+    "message": "按鈕依這個順序排列。分隔線用來分組 —— 放不下的組會被收進「更多」，所以不常用的往後放。"
+  },
+  "opt_toolbar_add": {
+    "message": "新增按鈕…"
+  },
+  "opt_toolbar_sep": {
+    "message": "新增分隔線"
+  },
+  "opt_toolbar_reset": {
+    "message": "還原預設工具列"
+  },
+  "opt_toolbar_empty": {
+    "message": "工具列是空的，將使用預設配置。"
+  },
+  "opt_toolbar_unknown": {
+    "message": "已忽略不認得的按鈕：$1"
+  },
+  "sec_block": {
+    "message": "段落格式"
+  },
+  "opt_block_hint": {
+    "message": "一行一個，寫成「名稱=標籤」。可用標籤：p、div、h1–h6、pre、blockquote。"
+  },
+  "opt_block_default": {
+    "message": "新段落使用的格式"
+  },
+  "opt_block_invalid": {
+    "message": "已忽略不認得的標籤：$1"
+  },
+  "sec_markdown": {
+    "message": "Markdown"
+  },
+  "opt_markdown_label": {
+    "message": "把貼上的 Markdown 轉成富文字"
+  },
+  "opt_markdown_hint": {
+    "message": "只轉換純文字；帶真實格式的內容（從網頁或 Word 複製來的）原樣貼上。按一次復原即可退回原文。"
+  },
+  "sec_language": {
+    "message": "語言"
+  },
+  "opt_language_label": {
+    "message": "介面語言"
+  },
+  "opt_language_auto": {
+    "message": "跟隨 Thunderbird"
+  },
+  "opt_language_hint": {
+    "message": "同時作用於本頁與撰寫視窗裡的編輯器。"
+  },
+  "sec_advanced": {
+    "message": "進階"
+  },
+  "opt_debug_label": {
+    "message": "將診斷記錄輸出到主控台"
+  },
+  "opt_debug_hint": {
+    "message": "只在回報問題時需要，用完記得關掉 —— 很吵。"
+  },
+  "opt_raw_label": {
+    "message": "目前儲存的設定"
+  },
+  "opt_raw_hint": {
+    "message": "只儲存與預設值不同的鍵，這樣預設值（含隨語言翻譯的格式名稱）才能繼續跟著介面語言走。"
+  },
+  "btn_save": {
+    "message": "儲存"
+  },
+  "btn_reset_all": {
+    "message": "還原預設值"
+  },
+  "status_saved": {
+    "message": "已儲存"
+  },
+  "status_unchanged": {
+    "message": "沒有變更"
+  },
+  "status_error": {
+    "message": "儲存失敗：$1"
+  },
+  "confirm_reset": {
+    "message": "把本頁所有設定還原成預設值？"
+  },
+  "opt_empty": {
+    "message": "空"
+  },
+  "btn_cancel": {
+    "message": "取消"
+  },
+  "btn_ok": {
+    "message": "確定"
+  },
+  "status_dirty": {
+    "message": "有未儲存的變更"
+  },
+  "confirm_discard": {
+    "message": "放棄尚未儲存的變更？"
+  }
+}

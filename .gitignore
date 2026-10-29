@@ -1,0 +1,26 @@
+# 构建产物：dist/ 里只有打好的 xpi
+dist/
+*.xpi
+
+# 第三方静态资源：postinstall（tools/extract-tinymce.mjs）按白名单从 node_modules
+# 提取到 vendor/tinymce，是生成物。克隆后先 npm install 才会有它
+vendor/
+
+# 依赖：保留（提取完不再删除），但也不进版本库
+node_modules/
+
+# 手工回归页面：本地留着用，不进仓库（沙箱里跑不了浏览器，只能人工点）
+.harness/
+
+# 2026-10-29 重建仓库时的历史备份，确认无误后可自行删除
+.git-backup-*.tar.gz
+.git-backup-*.bundle
+
+# 编辑器与操作系统噪声
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

@@ -1,0 +1,25 @@
+{
+  "name": "better-compose",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Thunderbird 撰写窗口的所见即所得编辑器。TinyMCE 之外零依赖：校验、单测、打包全用 node 内置模块",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "postinstall": "node tools/extract-tinymce.mjs",
+    "check:i18n": "node tools/check-i18n.mjs",
+    "check:static": "node tools/check-static.mjs",
+    "test": "node tools/test-markdown.mjs && node tools/test-config.mjs && node tools/test-i18n.mjs",
+    "check": "npm run check:i18n && npm run check:static && npm run test",
+    "xpi": "node tools/build-xpi.mjs",
+    "build": "npm run check && npm run xpi",
+    "release": "bumpp package.json package-lock.json manifest.json compose/markdown.js --git-check -x \"npm run check\" --no-push"
+  },
+  "devDependencies": {
+    "bumpp": "12.3.0",
+    "tinymce": "7.9.3",
+    "tinymce-i18n": "26.9.28"
+  }
+}

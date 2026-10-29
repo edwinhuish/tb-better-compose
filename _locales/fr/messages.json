@@ -1,0 +1,515 @@
+{
+  "app_name": {
+    "message": "BetterCompose"
+  },
+  "app_description": {
+    "message": "Une barre d’outils sur une seule ligne et des menus repliables à gauche dans la fenêtre de rédaction de Thunderbird ; les images passent par le mécanisme moz-do-not-send de Thunderbird au lieu d’être intégrées en base64."
+  },
+
+  "banner_loading": {
+    "message": "Chargement de BetterCompose…"
+  },
+  "banner_load_failed": {
+    "message": "Échec du chargement de BetterCompose : $1 (l’éditeur simple reste utilisable)"
+  },
+  "banner_init_failed": {
+    "message": "Échec du démarrage de BetterCompose : $1 (cliquez pour fermer, l’éditeur simple reste utilisable)"
+  },
+  "banner_not_ready": {
+    "message": "BetterCompose n’est pas prêt après 8 s — appuyez sur Ctrl+Maj+J et cherchez les erreurs [BetterCompose]"
+  },
+  "banner_click_close": {
+    "message": "Cliquer pour fermer"
+  },
+
+  "block_body": {
+    "message": "Corps de texte"
+  },
+  "block_paragraph": {
+    "message": "Paragraphe"
+  },
+  "block_heading": {
+    "message": "Titre $1"
+  },
+  "block_pre": {
+    "message": "Préformaté"
+  },
+
+  "tb_menu": {
+    "message": "Menu"
+  },
+  "tb_menu_tip": {
+    "message": "Édition, format, insertion, tableau, affichage"
+  },
+  "tb_font_tip": {
+    "message": "Police (affiche la police actuelle)"
+  },
+  "tb_size_tip": {
+    "message": "Taille de police (affiche la taille actuelle)"
+  },
+  "tb_block_tip": {
+    "message": "Style de paragraphe (affiche le style actuel)"
+  },
+  "tb_emoji_tip": {
+    "message": "Émoji"
+  },
+
+  "align_left": {
+    "message": "Aligner à gauche"
+  },
+  "align_center": {
+    "message": "Centrer"
+  },
+  "align_right": {
+    "message": "Aligner à droite"
+  },
+
+  "fp_tooltip": {
+    "message": "Reproduire la mise en forme : cliquez une fois pour prélever, puis sélectionnez le texte à mettre en forme. Reste actif ; recliquez ou appuyez sur Échap pour arrêter"
+  },
+  "fp_need_selection": {
+    "message": "Placez le curseur dans le texte à prélever, ou sélectionnez-le"
+  },
+  "fp_sampled": {
+    "message": "Mise en forme prélevée. Sélectionnez le texte cible ; reste actif, Échap pour arrêter"
+  },
+
+  "menu_undo": {
+    "message": "Annuler"
+  },
+  "menu_redo": {
+    "message": "Rétablir"
+  },
+  "menu_clipboard": {
+    "message": "Presse-papiers"
+  },
+  "menu_format": {
+    "message": "Format"
+  },
+  "menu_insert": {
+    "message": "Insertion"
+  },
+  "menu_table": {
+    "message": "Tableau"
+  },
+  "menu_view": {
+    "message": "Affichage"
+  },
+  "menu_find_replace": {
+    "message": "Rechercher et remplacer…"
+  },
+
+  "clip_cut": {
+    "message": "Couper"
+  },
+  "clip_copy": {
+    "message": "Copier"
+  },
+  "clip_paste": {
+    "message": "Coller"
+  },
+  "clip_select_all": {
+    "message": "Tout sélectionner"
+  },
+
+  "fmt_block": {
+    "message": "Style de paragraphe"
+  },
+  "fmt_mark_red": {
+    "message": "Marquer en rouge"
+  },
+  "fmt_text_color": {
+    "message": "Couleur du texte"
+  },
+  "fmt_back_color": {
+    "message": "Couleur de fond"
+  },
+  "fmt_highlight": {
+    "message": "Surligner"
+  },
+  "fmt_size": {
+    "message": "Taille de police"
+  },
+  "fmt_bold": {
+    "message": "Gras"
+  },
+  "fmt_italic": {
+    "message": "Italique"
+  },
+  "fmt_underline": {
+    "message": "Souligné"
+  },
+  "fmt_strike": {
+    "message": "Barré"
+  },
+  "fmt_list_bullet": {
+    "message": "Liste à puces"
+  },
+  "fmt_list_number": {
+    "message": "Liste numérotée"
+  },
+  "fmt_clear": {
+    "message": "Effacer la mise en forme"
+  },
+
+  "ins_image": {
+    "message": "Image…"
+  },
+  "ins_link": {
+    "message": "Lien…"
+  },
+  "ins_table": {
+    "message": "Tableau…"
+  },
+  "ins_hr": {
+    "message": "Ligne horizontale"
+  },
+  "ins_charmap": {
+    "message": "Caractère spécial…"
+  },
+  "ins_date": {
+    "message": "Date du jour"
+  },
+  "ins_time": {
+    "message": "Heure actuelle"
+  },
+  "ins_anchor": {
+    "message": "Ancre…"
+  },
+
+  "tbl_insert": {
+    "message": "Insérer un tableau…"
+  },
+  "tbl_row_above": {
+    "message": "Insérer une ligne au-dessus"
+  },
+  "tbl_row_below": {
+    "message": "Insérer une ligne en dessous"
+  },
+  "tbl_row_delete": {
+    "message": "Supprimer la ligne"
+  },
+  "tbl_col_before": {
+    "message": "Insérer une colonne à gauche"
+  },
+  "tbl_col_after": {
+    "message": "Insérer une colonne à droite"
+  },
+  "tbl_col_delete": {
+    "message": "Supprimer la colonne"
+  },
+  "tbl_merge": {
+    "message": "Fusionner les cellules"
+  },
+  "tbl_split": {
+    "message": "Scinder la cellule"
+  },
+  "tbl_delete": {
+    "message": "Supprimer le tableau"
+  },
+
+  "view_source": {
+    "message": "Source HTML…"
+  },
+  "view_fullscreen": {
+    "message": "Plein écran"
+  },
+  "view_blocks": {
+    "message": "Afficher les bordures de bloc"
+  },
+
+  "color_light_green": {
+    "message": "Vert clair"
+  },
+  "color_light_yellow": {
+    "message": "Jaune clair"
+  },
+  "color_light_red": {
+    "message": "Rouge clair"
+  },
+  "color_light_purple": {
+    "message": "Violet clair"
+  },
+  "color_light_blue": {
+    "message": "Bleu clair"
+  },
+  "color_green": {
+    "message": "Vert"
+  },
+  "color_yellow": {
+    "message": "Jaune"
+  },
+  "color_red": {
+    "message": "Rouge"
+  },
+  "color_purple": {
+    "message": "Violet"
+  },
+  "color_blue": {
+    "message": "Bleu"
+  },
+  "color_dark_cyan": {
+    "message": "Cyan foncé"
+  },
+  "color_orange": {
+    "message": "Orange"
+  },
+  "color_dark_red": {
+    "message": "Rouge foncé"
+  },
+  "color_dark_purple": {
+    "message": "Violet foncé"
+  },
+  "color_dark_blue": {
+    "message": "Bleu foncé"
+  },
+  "color_light_gray": {
+    "message": "Gris clair"
+  },
+  "color_mid_gray": {
+    "message": "Gris moyen"
+  },
+  "color_gray": {
+    "message": "Gris"
+  },
+  "color_dark_gray": {
+    "message": "Gris foncé"
+  },
+  "color_navy": {
+    "message": "Bleu marine"
+  },
+  "color_black": {
+    "message": "Noir"
+  },
+  "color_white": {
+    "message": "Blanc"
+  },
+
+  "hl_yellow": {
+    "message": "Jaune"
+  },
+  "hl_gray": {
+    "message": "Gris"
+  },
+  "hl_none": {
+    "message": "Aucun"
+  },
+
+  "size_default": {
+    "message": "Par défaut"
+  },
+
+  "font_system": {
+    "message": "Police du système"
+  },
+  "font_sim_sun": {
+    "message": "SimSun"
+  },
+  "font_sim_sun_short": {
+    "message": "SimSun"
+  },
+  "font_ya_hei": {
+    "message": "Microsoft YaHei"
+  },
+  "font_ya_hei_short": {
+    "message": "YaHei"
+  },
+  "font_sim_hei": {
+    "message": "SimHei"
+  },
+  "font_sim_hei_short": {
+    "message": "SimHei"
+  },
+  "font_kai_ti": {
+    "message": "KaiTi"
+  },
+  "font_kai_ti_short": {
+    "message": "KaiTi"
+  },
+
+  "grp_custom": {
+    "message": "Personnalisé"
+  },
+  "grp_edit": {
+    "message": "Édition"
+  },
+  "grp_format": {
+    "message": "Mise en forme"
+  },
+  "grp_align": {
+    "message": "Alignement"
+  },
+  "grp_list": {
+    "message": "Listes"
+  },
+  "grp_insert": {
+    "message": "Insertion et affichage"
+  },
+
+  "btn_custom_menu": {
+    "message": "Bouton menu"
+  },
+  "btn_custom_font": {
+    "message": "Sélecteur de police"
+  },
+  "btn_custom_size": {
+    "message": "Sélecteur de taille"
+  },
+  "btn_custom_block": {
+    "message": "Sélecteur de style de paragraphe"
+  },
+  "btn_custom_painter": {
+    "message": "Reproduire la mise en forme"
+  },
+  "btn_custom_emoji": {
+    "message": "Émoji"
+  },
+  "btn_undo": {
+    "message": "Annuler"
+  },
+  "btn_redo": {
+    "message": "Rétablir"
+  },
+  "btn_pastetext": {
+    "message": "Coller en texte brut"
+  },
+  "btn_subscript": {
+    "message": "Indice"
+  },
+  "btn_superscript": {
+    "message": "Exposant"
+  },
+  "btn_blocks": {
+    "message": "Liste des styles de paragraphe"
+  },
+  "btn_align_justify": {
+    "message": "Justifier"
+  },
+  "btn_outdent": {
+    "message": "Diminuer le retrait"
+  },
+  "btn_indent": {
+    "message": "Augmenter le retrait"
+  },
+  "btn_datetime": {
+    "message": "Date et heure"
+  },
+  "btn_code": {
+    "message": "Source HTML"
+  },
+  "btn_preview": {
+    "message": "Aperçu"
+  },
+
+  "opt_title": {
+    "message": "Paramètres de BetterCompose"
+  },
+  "opt_intro": {
+    "message": "Ces réglages ne concernent que la fenêtre de rédaction. Le reste de Thunderbird n’est pas modifié."
+  },
+  "opt_reopen": {
+    "message": "Les modifications s’appliquent aux fenêtres de rédaction ouvertes à partir de maintenant."
+  },
+  "sec_toolbar": {
+    "message": "Barre d’outils"
+  },
+  "opt_toolbar_hint": {
+    "message": "Les boutons apparaissent dans cet ordre. Un séparateur délimite les groupes — la barre replie les groupes qui ne tiennent pas dans un menu « plus », donc gardez les moins utilisés à la fin."
+  },
+  "opt_toolbar_add": {
+    "message": "Ajouter un bouton…"
+  },
+  "opt_toolbar_sep": {
+    "message": "Ajouter un séparateur"
+  },
+  "opt_toolbar_reset": {
+    "message": "Réinitialiser la barre d’outils"
+  },
+  "opt_toolbar_empty": {
+    "message": "La barre d’outils est vide, la disposition par défaut sera utilisée."
+  },
+  "opt_toolbar_unknown": {
+    "message": "Bouton inconnu ignoré : $1"
+  },
+  "sec_block": {
+    "message": "Styles de paragraphe"
+  },
+  "opt_block_hint": {
+    "message": "Un style par ligne, au format nom=balise. Balises acceptées : p, div, h1–h6, pre, blockquote."
+  },
+  "opt_block_default": {
+    "message": "Style des nouveaux paragraphes"
+  },
+  "opt_block_invalid": {
+    "message": "Balise inconnue ignorée : $1"
+  },
+  "sec_markdown": {
+    "message": "Markdown"
+  },
+  "opt_markdown_label": {
+    "message": "Convertir le Markdown collé en texte enrichi"
+  },
+  "opt_markdown_hint": {
+    "message": "Seul le texte brut est converti — un contenu déjà mis en forme (copié d’une page web ou de Word) est collé tel quel. Un seul « Annuler » récupère le texte d’origine."
+  },
+  "sec_language": {
+    "message": "Langue"
+  },
+  "opt_language_label": {
+    "message": "Langue de l’interface"
+  },
+  "opt_language_auto": {
+    "message": "Suivre Thunderbird"
+  },
+  "opt_language_hint": {
+    "message": "S’applique à cette page et à l’éditeur de la fenêtre de rédaction."
+  },
+  "sec_advanced": {
+    "message": "Avancé"
+  },
+  "opt_debug_label": {
+    "message": "Écrire les diagnostics dans la console"
+  },
+  "opt_debug_hint": {
+    "message": "Utile seulement pour signaler un problème. À désactiver ensuite — c’est très bavard."
+  },
+  "opt_raw_label": {
+    "message": "Configuration enregistrée"
+  },
+  "opt_raw_hint": {
+    "message": "Seules les valeurs différentes des valeurs par défaut sont enregistrées : les valeurs par défaut (y compris les noms de styles traduits) continuent ainsi de suivre la langue de l’interface."
+  },
+  "btn_save": {
+    "message": "Enregistrer"
+  },
+  "btn_reset_all": {
+    "message": "Rétablir les valeurs par défaut"
+  },
+  "status_saved": {
+    "message": "Enregistré"
+  },
+  "status_unchanged": {
+    "message": "Aucune modification"
+  },
+  "status_error": {
+    "message": "Échec de l’enregistrement : $1"
+  },
+  "confirm_reset": {
+    "message": "Rétablir tous les réglages de cette page à leur valeur par défaut ?"
+  },
+  "opt_empty": {
+    "message": "Vide"
+  },
+  "btn_cancel": {
+    "message": "Annuler"
+  },
+  "btn_ok": {
+    "message": "OK"
+  },
+  "status_dirty": {
+    "message": "Modifications non enregistrées"
+  },
+  "confirm_discard": {
+    "message": "Abandonner les modifications non enregistrées ?"
+  }
+}

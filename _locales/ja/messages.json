@@ -1,0 +1,515 @@
+{
+  "app_name": {
+    "message": "BetterCompose"
+  },
+  "app_description": {
+    "message": "Thunderbird の作成ウィンドウに 1 行のツールバーと折りたたみメニューを追加します。画像は base64 を本文に埋め込まず、Thunderbird 本来の moz-do-not-send 経路で扱います。"
+  },
+
+  "banner_loading": {
+    "message": "BetterCompose を読み込み中…"
+  },
+  "banner_load_failed": {
+    "message": "BetterCompose の読み込みに失敗しました：$1（通常のエディターは使用できます）"
+  },
+  "banner_init_failed": {
+    "message": "BetterCompose の初期化に失敗しました：$1（クリックで閉じます。通常のエディターは使用できます）"
+  },
+  "banner_not_ready": {
+    "message": "BetterCompose が 8 秒経っても準備できません — Ctrl+Shift+J を押して [BetterCompose] のエラーを確認してください"
+  },
+  "banner_click_close": {
+    "message": "クリックで閉じる"
+  },
+
+  "block_body": {
+    "message": "本文"
+  },
+  "block_paragraph": {
+    "message": "段落"
+  },
+  "block_heading": {
+    "message": "見出し $1"
+  },
+  "block_pre": {
+    "message": "整形済みテキスト"
+  },
+
+  "tb_menu": {
+    "message": "メニュー"
+  },
+  "tb_menu_tip": {
+    "message": "編集、書式、挿入、表、表示"
+  },
+  "tb_font_tip": {
+    "message": "フォント（現在のフォントを表示）"
+  },
+  "tb_size_tip": {
+    "message": "フォントサイズ（現在のサイズを表示）"
+  },
+  "tb_block_tip": {
+    "message": "段落書式（現在の書式を表示）"
+  },
+  "tb_emoji_tip": {
+    "message": "絵文字"
+  },
+
+  "align_left": {
+    "message": "左揃え"
+  },
+  "align_center": {
+    "message": "中央揃え"
+  },
+  "align_right": {
+    "message": "右揃え"
+  },
+
+  "fp_tooltip": {
+    "message": "書式のコピー：1 回クリックでサンプリングし、テキストを選択すると適用します。続けて使えます。もう一度クリックするか Esc で終了"
+  },
+  "fp_need_selection": {
+    "message": "サンプリングするテキストにカーソルを置くか、選択してください"
+  },
+  "fp_sampled": {
+    "message": "サンプリングしました。適用先のテキストを選択してください。続けて使えます。Esc で終了"
+  },
+
+  "menu_undo": {
+    "message": "元に戻す"
+  },
+  "menu_redo": {
+    "message": "やり直す"
+  },
+  "menu_clipboard": {
+    "message": "クリップボード"
+  },
+  "menu_format": {
+    "message": "書式"
+  },
+  "menu_insert": {
+    "message": "挿入"
+  },
+  "menu_table": {
+    "message": "表"
+  },
+  "menu_view": {
+    "message": "表示"
+  },
+  "menu_find_replace": {
+    "message": "検索と置換…"
+  },
+
+  "clip_cut": {
+    "message": "切り取り"
+  },
+  "clip_copy": {
+    "message": "コピー"
+  },
+  "clip_paste": {
+    "message": "貼り付け"
+  },
+  "clip_select_all": {
+    "message": "すべて選択"
+  },
+
+  "fmt_block": {
+    "message": "段落書式"
+  },
+  "fmt_mark_red": {
+    "message": "赤で強調"
+  },
+  "fmt_text_color": {
+    "message": "文字色"
+  },
+  "fmt_back_color": {
+    "message": "背景色"
+  },
+  "fmt_highlight": {
+    "message": "ハイライト"
+  },
+  "fmt_size": {
+    "message": "フォントサイズ"
+  },
+  "fmt_bold": {
+    "message": "太字"
+  },
+  "fmt_italic": {
+    "message": "斜体"
+  },
+  "fmt_underline": {
+    "message": "下線"
+  },
+  "fmt_strike": {
+    "message": "取り消し線"
+  },
+  "fmt_list_bullet": {
+    "message": "箇条書き"
+  },
+  "fmt_list_number": {
+    "message": "番号付きリスト"
+  },
+  "fmt_clear": {
+    "message": "書式をクリア"
+  },
+
+  "ins_image": {
+    "message": "画像…"
+  },
+  "ins_link": {
+    "message": "リンク…"
+  },
+  "ins_table": {
+    "message": "表…"
+  },
+  "ins_hr": {
+    "message": "水平線"
+  },
+  "ins_charmap": {
+    "message": "特殊文字…"
+  },
+  "ins_date": {
+    "message": "現在の日付"
+  },
+  "ins_time": {
+    "message": "現在の時刻"
+  },
+  "ins_anchor": {
+    "message": "アンカー…"
+  },
+
+  "tbl_insert": {
+    "message": "表を挿入…"
+  },
+  "tbl_row_above": {
+    "message": "上に行を挿入"
+  },
+  "tbl_row_below": {
+    "message": "下に行を挿入"
+  },
+  "tbl_row_delete": {
+    "message": "行を削除"
+  },
+  "tbl_col_before": {
+    "message": "左に列を挿入"
+  },
+  "tbl_col_after": {
+    "message": "右に列を挿入"
+  },
+  "tbl_col_delete": {
+    "message": "列を削除"
+  },
+  "tbl_merge": {
+    "message": "セルを結合"
+  },
+  "tbl_split": {
+    "message": "セルを分割"
+  },
+  "tbl_delete": {
+    "message": "表を削除"
+  },
+
+  "view_source": {
+    "message": "HTML ソース…"
+  },
+  "view_fullscreen": {
+    "message": "全画面表示"
+  },
+  "view_blocks": {
+    "message": "ブロックの境界線を表示"
+  },
+
+  "color_light_green": {
+    "message": "薄い緑"
+  },
+  "color_light_yellow": {
+    "message": "薄い黄"
+  },
+  "color_light_red": {
+    "message": "薄い赤"
+  },
+  "color_light_purple": {
+    "message": "薄い紫"
+  },
+  "color_light_blue": {
+    "message": "薄い水色"
+  },
+  "color_green": {
+    "message": "緑"
+  },
+  "color_yellow": {
+    "message": "黄"
+  },
+  "color_red": {
+    "message": "赤"
+  },
+  "color_purple": {
+    "message": "紫"
+  },
+  "color_blue": {
+    "message": "青"
+  },
+  "color_dark_cyan": {
+    "message": "濃い青緑"
+  },
+  "color_orange": {
+    "message": "オレンジ"
+  },
+  "color_dark_red": {
+    "message": "暗い赤"
+  },
+  "color_dark_purple": {
+    "message": "濃い紫"
+  },
+  "color_dark_blue": {
+    "message": "濃い青"
+  },
+  "color_light_gray": {
+    "message": "薄いグレー"
+  },
+  "color_mid_gray": {
+    "message": "中間グレー"
+  },
+  "color_gray": {
+    "message": "グレー"
+  },
+  "color_dark_gray": {
+    "message": "濃いグレー"
+  },
+  "color_navy": {
+    "message": "紺"
+  },
+  "color_black": {
+    "message": "黒"
+  },
+  "color_white": {
+    "message": "白"
+  },
+
+  "hl_yellow": {
+    "message": "黄"
+  },
+  "hl_gray": {
+    "message": "グレー"
+  },
+  "hl_none": {
+    "message": "なし"
+  },
+
+  "size_default": {
+    "message": "既定"
+  },
+
+  "font_system": {
+    "message": "システム既定"
+  },
+  "font_sim_sun": {
+    "message": "SimSun"
+  },
+  "font_sim_sun_short": {
+    "message": "SimSun"
+  },
+  "font_ya_hei": {
+    "message": "Microsoft YaHei"
+  },
+  "font_ya_hei_short": {
+    "message": "YaHei"
+  },
+  "font_sim_hei": {
+    "message": "SimHei"
+  },
+  "font_sim_hei_short": {
+    "message": "SimHei"
+  },
+  "font_kai_ti": {
+    "message": "KaiTi"
+  },
+  "font_kai_ti_short": {
+    "message": "KaiTi"
+  },
+
+  "grp_custom": {
+    "message": "カスタム"
+  },
+  "grp_edit": {
+    "message": "編集"
+  },
+  "grp_format": {
+    "message": "書式"
+  },
+  "grp_align": {
+    "message": "配置"
+  },
+  "grp_list": {
+    "message": "リスト"
+  },
+  "grp_insert": {
+    "message": "挿入と表示"
+  },
+
+  "btn_custom_menu": {
+    "message": "メニューボタン"
+  },
+  "btn_custom_font": {
+    "message": "フォント選択"
+  },
+  "btn_custom_size": {
+    "message": "サイズ選択"
+  },
+  "btn_custom_block": {
+    "message": "段落書式の選択"
+  },
+  "btn_custom_painter": {
+    "message": "書式のコピー"
+  },
+  "btn_custom_emoji": {
+    "message": "絵文字"
+  },
+  "btn_undo": {
+    "message": "元に戻す"
+  },
+  "btn_redo": {
+    "message": "やり直す"
+  },
+  "btn_pastetext": {
+    "message": "プレーンテキストとして貼り付け"
+  },
+  "btn_subscript": {
+    "message": "下付き文字"
+  },
+  "btn_superscript": {
+    "message": "上付き文字"
+  },
+  "btn_blocks": {
+    "message": "段落書式のドロップダウン"
+  },
+  "btn_align_justify": {
+    "message": "両端揃え"
+  },
+  "btn_outdent": {
+    "message": "インデントを減らす"
+  },
+  "btn_indent": {
+    "message": "インデントを増やす"
+  },
+  "btn_datetime": {
+    "message": "日付と時刻"
+  },
+  "btn_code": {
+    "message": "HTML ソース"
+  },
+  "btn_preview": {
+    "message": "プレビュー"
+  },
+
+  "opt_title": {
+    "message": "BetterCompose の設定"
+  },
+  "opt_intro": {
+    "message": "これらの設定は作成ウィンドウにのみ適用されます。Thunderbird の他の部分は変更されません。"
+  },
+  "opt_reopen": {
+    "message": "変更は、これから開く作成ウィンドウから反映されます。"
+  },
+  "sec_toolbar": {
+    "message": "ツールバー"
+  },
+  "opt_toolbar_hint": {
+    "message": "ボタンはこの順に並びます。区切り線でグループを分けます。入りきらないグループは「その他」にまとめられるため、あまり使わないものは後ろに置いてください。"
+  },
+  "opt_toolbar_add": {
+    "message": "ボタンを追加…"
+  },
+  "opt_toolbar_sep": {
+    "message": "区切り線を追加"
+  },
+  "opt_toolbar_reset": {
+    "message": "ツールバーを初期値に戻す"
+  },
+  "opt_toolbar_empty": {
+    "message": "ツールバーが空です。既定の配置を使用します。"
+  },
+  "opt_toolbar_unknown": {
+    "message": "不明なボタンのため無視しました：$1"
+  },
+  "sec_block": {
+    "message": "段落書式"
+  },
+  "opt_block_hint": {
+    "message": "1 行に 1 つ、「名前=タグ」の形式で記述します。使用できるタグ：p、div、h1–h6、pre、blockquote。"
+  },
+  "opt_block_default": {
+    "message": "新しい段落の書式"
+  },
+  "opt_block_invalid": {
+    "message": "不明なタグのため無視しました：$1"
+  },
+  "sec_markdown": {
+    "message": "Markdown"
+  },
+  "opt_markdown_label": {
+    "message": "貼り付けた Markdown をリッチテキストに変換する"
+  },
+  "opt_markdown_hint": {
+    "message": "変換するのはプレーンテキストのみです。書式付きの内容（Web ページや Word からコピーしたもの）はそのまま貼り付けます。元に戻すと元のテキストに戻ります。"
+  },
+  "sec_language": {
+    "message": "言語"
+  },
+  "opt_language_label": {
+    "message": "表示言語"
+  },
+  "opt_language_auto": {
+    "message": "Thunderbird に合わせる"
+  },
+  "opt_language_hint": {
+    "message": "このページと作成ウィンドウ内のエディターの両方に適用されます。"
+  },
+  "sec_advanced": {
+    "message": "詳細"
+  },
+  "opt_debug_label": {
+    "message": "診断ログをコンソールに出力する"
+  },
+  "opt_debug_hint": {
+    "message": "問題を報告するときだけ必要です。終わったらオフにしてください（出力が多くなります）。"
+  },
+  "opt_raw_label": {
+    "message": "保存されている設定"
+  },
+  "opt_raw_hint": {
+    "message": "既定値と異なるキーだけを保存します。そのため既定値（言語に応じて翻訳される書式名を含む）は表示言語に追従し続けます。"
+  },
+  "btn_save": {
+    "message": "保存"
+  },
+  "btn_reset_all": {
+    "message": "初期値に戻す"
+  },
+  "status_saved": {
+    "message": "保存しました"
+  },
+  "status_unchanged": {
+    "message": "変更はありません"
+  },
+  "status_error": {
+    "message": "保存できませんでした：$1"
+  },
+  "confirm_reset": {
+    "message": "このページのすべての設定を初期値に戻しますか？"
+  },
+  "opt_empty": {
+    "message": "空"
+  },
+  "btn_cancel": {
+    "message": "キャンセル"
+  },
+  "btn_ok": {
+    "message": "OK"
+  },
+  "status_dirty": {
+    "message": "未保存の変更があります"
+  },
+  "confirm_discard": {
+    "message": "保存していない変更を破棄しますか？"
+  }
+}

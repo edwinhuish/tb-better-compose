@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title data-i18n="opt_title">BetterCompose settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+<main class="page">
+
+  <!-- 内嵌在附加组件页里时标题由宿主那一页提供，所以这个 h1 只在独立标签页里显示 -->
+  <header class="head">
+    <h1 data-i18n="opt_title">BetterCompose settings</h1>
+    <p class="lead" data-i18n="opt_intro"></p>
+  </header>
+
+  <!-- 工具栏：顺序 + 分组。改动直接反映到撰写窗口的工具栏。 -->
+  <section class="card">
+    <h2 data-i18n="sec_toolbar">Toolbar</h2>
+    <p class="hint" data-i18n="opt_toolbar_hint"></p>
+    <div id="chips" class="chips"></div>
+    <p id="chips-empty" class="warn" data-i18n="opt_toolbar_empty" hidden></p>
+    <p id="chips-warn" class="warn" hidden></p>
+    <div class="row">
+      <select id="add-button" class="grow"></select>
+      <button id="add-separator" type="button" data-i18n="opt_toolbar_sep"></button>
+      <button id="reset-toolbar" type="button" data-i18n="opt_toolbar_reset"></button>
+    </div>
+  </section>
+
+  <!-- 段落格式：一行一个「名称=标签」。标签白名单在 compose/config.js。 -->
+  <section class="card">
+    <h2 data-i18n="sec_block">Paragraph styles</h2>
+    <p class="hint" data-i18n="opt_block_hint"></p>
+    <textarea id="blocks" rows="7" spellcheck="false" autocapitalize="off"></textarea>
+    <p id="blocks-warn" class="warn" hidden></p>
+    <label class="field">
+      <span data-i18n="opt_block_default">Style for new paragraphs</span>
+      <select id="default-block"></select>
+    </label>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="sec_markdown">Markdown</h2>
+    <label class="check">
+      <input type="checkbox" id="markdown">
+      <span data-i18n="opt_markdown_label"></span>
+    </label>
+    <p class="hint" data-i18n="opt_markdown_hint"></p>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="sec_language">Language</h2>
+    <label class="field">
+      <span data-i18n="opt_language_label">Interface language</span>
+      <select id="language"></select>
+    </label>
+    <p class="hint" data-i18n="opt_language_hint"></p>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="sec_advanced">Advanced</h2>
+    <label class="check">
+      <input type="checkbox" id="debug">
+      <span data-i18n="opt_debug_label"></span>
+    </label>
+    <p class="hint" data-i18n="opt_debug_hint"></p>
+
+    <details class="raw">
+      <summary data-i18n="opt_raw_label">Stored configuration</summary>
+      <p class="hint" data-i18n="opt_raw_hint"></p>
+      <pre id="raw" class="code"></pre>
+    </details>
+  </section>
+
+  <!-- 操作区贴底：内嵌时整页比 iframe 高，按钮要一直看得见。
+       状态在左、按钮在右，和 Thunderbird 自己的对话框一致。 -->
+  <footer class="foot">
+    <div class="actions">
+      <span id="status" class="status" role="status" aria-live="polite"></span>
+      <div class="btns">
+        <button id="restore" type="button" data-i18n="btn_reset_all">Restore defaults</button>
+        <button id="cancel" type="button" disabled data-i18n="btn_cancel">Cancel</button>
+        <button id="save" class="primary" type="button" disabled data-i18n="btn_save">Save</button>
+      </div>
+    </div>
+    <p class="hint" data-i18n="opt_reopen"></p>
+  </footer>
+
+</main>
+
+<!-- 确认框自己画：内嵌在 chrome 页面里时 window.confirm 的样式与宿主不一致，
+     个别嵌入上下文还会直接吞掉模态。 -->
+<dialog id="confirm-dialog" class="dialog" aria-labelledby="confirm-text">
+  <div class="dialog-inner">
+    <p id="confirm-text" class="dialog-text"></p>
+    <div class="dialog-actions">
+      <button type="button" data-answer="cancel" data-i18n="btn_cancel">Cancel</button>
+      <button type="button" data-answer="ok" class="primary" data-i18n="btn_ok">OK</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 与撰写窗口同一份配置与文案实现：选项页要是自己抄一遍校验，
+     迟早会和编辑器那边说的不一样。 -->
+<script src="../compose/i18n.js"></script>
+<script src="../compose/config.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

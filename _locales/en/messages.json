@@ -1,0 +1,515 @@
+{
+  "app_name": {
+    "message": "BetterCompose"
+  },
+  "app_description": {
+    "message": "A single-row toolbar and left-hand folding menus for the Thunderbird compose window, with images going through Thunderbird's own moz-do-not-send path instead of inlined base64."
+  },
+
+  "banner_loading": {
+    "message": "Loading BetterCompose…"
+  },
+  "banner_load_failed": {
+    "message": "BetterCompose failed to load: $1 (the plain editor still works)"
+  },
+  "banner_init_failed": {
+    "message": "BetterCompose failed to start: $1 (click to dismiss, the plain editor still works)"
+  },
+  "banner_not_ready": {
+    "message": "BetterCompose is not ready after 8 s — press Ctrl+Shift+J and look for [BetterCompose] errors"
+  },
+  "banner_click_close": {
+    "message": "Click to dismiss"
+  },
+
+  "block_body": {
+    "message": "Body text"
+  },
+  "block_paragraph": {
+    "message": "Paragraph"
+  },
+  "block_heading": {
+    "message": "Heading $1"
+  },
+  "block_pre": {
+    "message": "Preformatted"
+  },
+
+  "tb_menu": {
+    "message": "Menu"
+  },
+  "tb_menu_tip": {
+    "message": "Edit, format, insert, table, view"
+  },
+  "tb_font_tip": {
+    "message": "Font (shows the current font)"
+  },
+  "tb_size_tip": {
+    "message": "Font size (shows the current size)"
+  },
+  "tb_block_tip": {
+    "message": "Paragraph style (shows the current style)"
+  },
+  "tb_emoji_tip": {
+    "message": "Emoji"
+  },
+
+  "align_left": {
+    "message": "Align left"
+  },
+  "align_center": {
+    "message": "Center"
+  },
+  "align_right": {
+    "message": "Align right"
+  },
+
+  "fp_tooltip": {
+    "message": "Format painter: click once to sample, then select text to apply. Stays active; click again or press Esc to stop"
+  },
+  "fp_need_selection": {
+    "message": "Put the cursor inside the text to sample, or select it"
+  },
+  "fp_sampled": {
+    "message": "Sampled. Select the target text to apply; stays active, Esc to stop"
+  },
+
+  "menu_undo": {
+    "message": "Undo"
+  },
+  "menu_redo": {
+    "message": "Redo"
+  },
+  "menu_clipboard": {
+    "message": "Clipboard"
+  },
+  "menu_format": {
+    "message": "Format"
+  },
+  "menu_insert": {
+    "message": "Insert"
+  },
+  "menu_table": {
+    "message": "Table"
+  },
+  "menu_view": {
+    "message": "View"
+  },
+  "menu_find_replace": {
+    "message": "Find and replace…"
+  },
+
+  "clip_cut": {
+    "message": "Cut"
+  },
+  "clip_copy": {
+    "message": "Copy"
+  },
+  "clip_paste": {
+    "message": "Paste"
+  },
+  "clip_select_all": {
+    "message": "Select all"
+  },
+
+  "fmt_block": {
+    "message": "Paragraph style"
+  },
+  "fmt_mark_red": {
+    "message": "Mark red"
+  },
+  "fmt_text_color": {
+    "message": "Text color"
+  },
+  "fmt_back_color": {
+    "message": "Background color"
+  },
+  "fmt_highlight": {
+    "message": "Highlight"
+  },
+  "fmt_size": {
+    "message": "Font size"
+  },
+  "fmt_bold": {
+    "message": "Bold"
+  },
+  "fmt_italic": {
+    "message": "Italic"
+  },
+  "fmt_underline": {
+    "message": "Underline"
+  },
+  "fmt_strike": {
+    "message": "Strikethrough"
+  },
+  "fmt_list_bullet": {
+    "message": "Bulleted list"
+  },
+  "fmt_list_number": {
+    "message": "Numbered list"
+  },
+  "fmt_clear": {
+    "message": "Clear formatting"
+  },
+
+  "ins_image": {
+    "message": "Image…"
+  },
+  "ins_link": {
+    "message": "Link…"
+  },
+  "ins_table": {
+    "message": "Table…"
+  },
+  "ins_hr": {
+    "message": "Horizontal line"
+  },
+  "ins_charmap": {
+    "message": "Special character…"
+  },
+  "ins_date": {
+    "message": "Current date"
+  },
+  "ins_time": {
+    "message": "Current time"
+  },
+  "ins_anchor": {
+    "message": "Anchor…"
+  },
+
+  "tbl_insert": {
+    "message": "Insert table…"
+  },
+  "tbl_row_above": {
+    "message": "Insert row above"
+  },
+  "tbl_row_below": {
+    "message": "Insert row below"
+  },
+  "tbl_row_delete": {
+    "message": "Delete row"
+  },
+  "tbl_col_before": {
+    "message": "Insert column left"
+  },
+  "tbl_col_after": {
+    "message": "Insert column right"
+  },
+  "tbl_col_delete": {
+    "message": "Delete column"
+  },
+  "tbl_merge": {
+    "message": "Merge cells"
+  },
+  "tbl_split": {
+    "message": "Split cell"
+  },
+  "tbl_delete": {
+    "message": "Delete table"
+  },
+
+  "view_source": {
+    "message": "HTML source…"
+  },
+  "view_fullscreen": {
+    "message": "Full screen"
+  },
+  "view_blocks": {
+    "message": "Show block borders"
+  },
+
+  "color_light_green": {
+    "message": "Light green"
+  },
+  "color_light_yellow": {
+    "message": "Light yellow"
+  },
+  "color_light_red": {
+    "message": "Light red"
+  },
+  "color_light_purple": {
+    "message": "Light purple"
+  },
+  "color_light_blue": {
+    "message": "Light blue"
+  },
+  "color_green": {
+    "message": "Green"
+  },
+  "color_yellow": {
+    "message": "Yellow"
+  },
+  "color_red": {
+    "message": "Red"
+  },
+  "color_purple": {
+    "message": "Purple"
+  },
+  "color_blue": {
+    "message": "Blue"
+  },
+  "color_dark_cyan": {
+    "message": "Dark cyan"
+  },
+  "color_orange": {
+    "message": "Orange"
+  },
+  "color_dark_red": {
+    "message": "Dark red"
+  },
+  "color_dark_purple": {
+    "message": "Dark purple"
+  },
+  "color_dark_blue": {
+    "message": "Dark blue"
+  },
+  "color_light_gray": {
+    "message": "Light gray"
+  },
+  "color_mid_gray": {
+    "message": "Medium gray"
+  },
+  "color_gray": {
+    "message": "Gray"
+  },
+  "color_dark_gray": {
+    "message": "Dark gray"
+  },
+  "color_navy": {
+    "message": "Navy"
+  },
+  "color_black": {
+    "message": "Black"
+  },
+  "color_white": {
+    "message": "White"
+  },
+
+  "hl_yellow": {
+    "message": "Yellow"
+  },
+  "hl_gray": {
+    "message": "Gray"
+  },
+  "hl_none": {
+    "message": "None"
+  },
+
+  "size_default": {
+    "message": "Default"
+  },
+
+  "font_system": {
+    "message": "System default"
+  },
+  "font_sim_sun": {
+    "message": "SimSun"
+  },
+  "font_sim_sun_short": {
+    "message": "SimSun"
+  },
+  "font_ya_hei": {
+    "message": "Microsoft YaHei"
+  },
+  "font_ya_hei_short": {
+    "message": "YaHei"
+  },
+  "font_sim_hei": {
+    "message": "SimHei"
+  },
+  "font_sim_hei_short": {
+    "message": "SimHei"
+  },
+  "font_kai_ti": {
+    "message": "KaiTi"
+  },
+  "font_kai_ti_short": {
+    "message": "KaiTi"
+  },
+
+  "grp_custom": {
+    "message": "Custom"
+  },
+  "grp_edit": {
+    "message": "Editing"
+  },
+  "grp_format": {
+    "message": "Formatting"
+  },
+  "grp_align": {
+    "message": "Alignment"
+  },
+  "grp_list": {
+    "message": "Lists"
+  },
+  "grp_insert": {
+    "message": "Insert and view"
+  },
+
+  "btn_custom_menu": {
+    "message": "Menu button"
+  },
+  "btn_custom_font": {
+    "message": "Font picker"
+  },
+  "btn_custom_size": {
+    "message": "Size picker"
+  },
+  "btn_custom_block": {
+    "message": "Paragraph style picker"
+  },
+  "btn_custom_painter": {
+    "message": "Format painter"
+  },
+  "btn_custom_emoji": {
+    "message": "Emoji"
+  },
+  "btn_undo": {
+    "message": "Undo"
+  },
+  "btn_redo": {
+    "message": "Redo"
+  },
+  "btn_pastetext": {
+    "message": "Paste as plain text"
+  },
+  "btn_subscript": {
+    "message": "Subscript"
+  },
+  "btn_superscript": {
+    "message": "Superscript"
+  },
+  "btn_blocks": {
+    "message": "Paragraph style dropdown"
+  },
+  "btn_align_justify": {
+    "message": "Justify"
+  },
+  "btn_outdent": {
+    "message": "Decrease indent"
+  },
+  "btn_indent": {
+    "message": "Increase indent"
+  },
+  "btn_datetime": {
+    "message": "Date and time"
+  },
+  "btn_code": {
+    "message": "HTML source"
+  },
+  "btn_preview": {
+    "message": "Preview"
+  },
+
+  "opt_title": {
+    "message": "BetterCompose settings"
+  },
+  "opt_intro": {
+    "message": "These settings apply to the compose window. The rest of Thunderbird is untouched."
+  },
+  "opt_reopen": {
+    "message": "Changes take effect in compose windows opened from now on."
+  },
+  "sec_toolbar": {
+    "message": "Toolbar"
+  },
+  "opt_toolbar_hint": {
+    "message": "Buttons are shown in this order. A separator splits groups — the toolbar folds overflowing groups into a “more” menu, so keep the rarely used ones at the end."
+  },
+  "opt_toolbar_add": {
+    "message": "Add a button…"
+  },
+  "opt_toolbar_sep": {
+    "message": "Add separator"
+  },
+  "opt_toolbar_reset": {
+    "message": "Reset toolbar"
+  },
+  "opt_toolbar_empty": {
+    "message": "The toolbar is empty, so the default layout will be used."
+  },
+  "opt_toolbar_unknown": {
+    "message": "Ignored, unknown button: $1"
+  },
+  "sec_block": {
+    "message": "Paragraph styles"
+  },
+  "opt_block_hint": {
+    "message": "One style per line, written as name=tag. Valid tags: p, div, h1–h6, pre, blockquote."
+  },
+  "opt_block_default": {
+    "message": "Style for new paragraphs"
+  },
+  "opt_block_invalid": {
+    "message": "Ignored, unknown tag: $1"
+  },
+  "sec_markdown": {
+    "message": "Markdown"
+  },
+  "opt_markdown_label": {
+    "message": "Turn pasted Markdown into rich text"
+  },
+  "opt_markdown_hint": {
+    "message": "Only plain text is converted — anything with real formatting (copied from a web page or Word) is pasted unchanged. Undo once to get the original text back."
+  },
+  "sec_language": {
+    "message": "Language"
+  },
+  "opt_language_label": {
+    "message": "Interface language"
+  },
+  "opt_language_auto": {
+    "message": "Follow Thunderbird"
+  },
+  "opt_language_hint": {
+    "message": "Applies to both this page and the editor inside the compose window."
+  },
+  "sec_advanced": {
+    "message": "Advanced"
+  },
+  "opt_debug_label": {
+    "message": "Log diagnostics to the console"
+  },
+  "opt_debug_hint": {
+    "message": "Only needed when reporting a problem. Turn it off afterwards — it is noisy."
+  },
+  "opt_raw_label": {
+    "message": "Stored configuration"
+  },
+  "opt_raw_hint": {
+    "message": "Only values that differ from the defaults are stored, so defaults (including translated style names) keep following the interface language."
+  },
+  "btn_save": {
+    "message": "Save"
+  },
+  "btn_reset_all": {
+    "message": "Restore defaults"
+  },
+  "status_saved": {
+    "message": "Saved"
+  },
+  "status_unchanged": {
+    "message": "Nothing to save"
+  },
+  "status_error": {
+    "message": "Could not save: $1"
+  },
+  "confirm_reset": {
+    "message": "Restore every setting on this page to its default value?"
+  },
+  "opt_empty": {
+    "message": "Empty"
+  },
+  "btn_cancel": {
+    "message": "Cancel"
+  },
+  "btn_ok": {
+    "message": "OK"
+  },
+  "status_dirty": {
+    "message": "Unsaved changes"
+  },
+  "confirm_discard": {
+    "message": "Discard the changes you have not saved?"
+  }
+}

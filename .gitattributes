@@ -1,0 +1,18 @@
+# 行尾统一成 LF。构建脚本全在 node 里了（npm scripts + tools/*.mjs），
+# 已没有需要 shebang 的 .sh —— 原来那条 *.sh 规则随 build.sh 一起删掉。
+* text=auto eol=lf
+
+# 脚本与配置显式钉死 LF
+*.json text eol=lf
+*.mjs  text eol=lf
+*.js   text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+
+# 二进制：不做行尾转换、不尝试文本 diff
+*.png  binary
+*.xpi  binary
+
+# 上游文件（tinymce 与语言包）已不再进仓库：它们是 npm 依赖，由 postinstall
+# （tools/extract-tinymce.mjs）提取到 vendor/tinymce/（vendor/ 已 gitignore）。
+# 所以这里不再需要给 tinymce/** 打 linguist-vendored —— diff 里自然不会出现上游字节。

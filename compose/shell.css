@@ -1,0 +1,209 @@
+/* 写信增强 BetterCompose — 撰写窗口外壳样式
+ *
+ * 目标只有三个：
+ *   1. 工具栏永远一行（TinyMCE 自己的 flex-wrap 要压住）
+ *   2. 左侧那组折叠菜单在视觉上独立成组
+ *   3. 弹出层（菜单/对话框）不被撰写窗口的 overflow 裁掉
+ */
+
+#tcs-toolbar {
+  flex: 0 0 auto;
+  min-height: 38px;
+  /* 和正文同底色、只留一道极淡的分隔线：观感上是“正文上方的一行工具”，
+     而不是 classic 编辑器那种独立工具条 */
+  border-bottom: 1px solid var(--tcs-border, #ececec);
+  background: transparent;
+  /* ⚠️ 这一行不能改成 hidden。TinyMCE 把下拉菜单挂在工具栏内部的 sink 上，
+     菜单顶边对着按钮底边（≈30px），比工具栏盒（39px）高出 9px；
+     一旦裁切，整块菜单落在盒子外 → 用户看到的是“点了菜单没反应”。
+     实测：overflow:hidden 时菜单 rect 顶边 1px、整块 252px 高，
+     elementFromPoint 打在菜单底部命中的是正文。 */
+  overflow: visible;
+}
+
+#tcs-toolbar .tox-tinymce {
+  border: 0 !important;
+}
+
+/* 单行：sliding 模式下不允许换行 */
+#tcs-toolbar .tox-toolbar,
+#tcs-toolbar .tox-toolbar-overlord,
+#tcs-toolbar .tox-toolbar__primary {
+  flex-wrap: nowrap !important;
+  background: transparent !important;
+}
+
+/* ⚠️ 按钮组也必须 nowrap + 不可收缩。只给上面三层加 nowrap 是不够的：
+   总宽超限时 flex 会把每个组压窄（flex-shrink 默认 1），组内的按钮于是
+   竖着堆成 2~3 行 —— 实测 640px 下 undo 在上面、redo 在下面，工具栏高 56px。
+   组固定成 auto 之后，超出的部分才轮到 sliding 收进「更多」。 */
+#tcs-toolbar .tox-toolbar__group {
+  flex: 0 0 auto;
+  flex-wrap: nowrap !important;
+}
+
+#tcs-toolbar .tox-toolbar__group {
+  padding: 0 1px;
+}
+
+/* 按钮紧凑一点，一行塞得下更多。
+   左右 margin 归零：相邻按钮的 hover 底色本来就贴在一起更像一条工具条，
+   而 12 个按钮省下的 24px 正好补上「字体/字号显示当前值」多占的宽度。 */
+#tcs-toolbar .tox-tbtn {
+  height: 28px;
+  min-width: 28px;
+  margin: 0;
+}
+
+/* 列表按钮（advlist 的 split button）右箭头收窄一点，两个按钮各省 6px */
+#tcs-toolbar .tox-split-button__chevron {
+  width: 14px;
+}
+
+/* 注意：不要试图用 padding 收窄图标按钮的宽度。TinyMCE 给图标按钮写的是
+   内联 style="width:34px"（按 icon 尺寸 + padding 算好的），CSS 的 padding
+   改不动它，只有 width !important 能压 —— 那会和 TinyMCE 自己的滑出计算打架，
+   不值当。对齐平铺多出来的约 38px 就老老实实占着；收起的阈值随按钮数量与
+   系统字体上移，不写死像素值。 */
+
+#tcs-toolbar .tox-tbtn--select {
+  padding: 0 5px;
+}
+
+/* 文字按钮（菜单 / 字体 / 字体大小 / 对齐）：标签别贴边，
+   并给个上限宽度 —— 字体名一长（18pt、Times New Roman）会自己撑开整条工具栏 */
+#tcs-toolbar .tox-tbtn__select-label {
+  padding: 0 1px;
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 字体 / 字号按钮显示**当前值**，文字长度会跟着选区变（系统默认 → 宋体 → Times，
+   10.5pt → 18pt）。TinyMCE 会按初始 text 量一个内联 width 定死，这里用 min-width
+   把下限托住：值变长时不会被 ellipsis 截，值变短时按钮也不会缩、整条工具栏不重排。 */
+#tcs-toolbar .tox-tbtn[data-mce-name="tcs_font"] {
+  min-width: 78px;
+}
+
+#tcs-toolbar .tox-tbtn[data-mce-name="tcs_size"] {
+  min-width: 64px;
+}
+
+/* 工具栏一律直角 —— 正常、悬停、按下、聚焦、激活，以及焦点环，一个圆角都不留。
+ * 皮肤里要压掉的有四类：
+ *   · .tox-tinymce                                10px（整体框）
+ *   · .tox.tox-tinymce-inline .tox-editor-header   10px + overflow:hidden
+ *       → 就是它把工具栏裁成一块圆角卡片（截图里那四个角）
+ *   · .tox-tbtn / .tox-split-button               3px
+ *   · 上面两者的 :focus::after                     3px（焦点环是伪元素画的，
+ *       只把主体归零，聚焦时照样冒出圆角轮廓）
+ *
+ * ⚠️ 这里必须 !important，不能靠特异性硬拼。工具栏搬进 shadow root 之后，
+ * 下面这批以「工具栏容器」id 打头的选择器会被整体替换成 :host（inject.js 的
+ * uiCssCache 做的是全文替换），特异性从 (1,1,0) 掉到 (0,2,0)；而皮肤那条
+ * .tox.tox-tinymce-inline .tox-editor-header 是 (0,3,0) —— 不加 !important
+ * 就被它压回去，真机上表现为「工具栏外框四个角还是圆的、按钮却是直的」。
+ * 这种差异 .harness 里复现不出来：那里是普通文档、没有 shadow，原来的
+ * 特异性正好够，所以一直是 PASS。
+ *
+ * 作用域只在工具栏内；下拉菜单、溢出菜单与对话框（.tox-tinymce-aux）保持原样。 */
+#tcs-toolbar,
+#tcs-toolbar .tox-tinymce,
+#tcs-toolbar .tox-editor-container,
+#tcs-toolbar .tox-editor-header,
+#tcs-toolbar .tox-toolbar,
+#tcs-toolbar .tox-toolbar-overlord,
+#tcs-toolbar .tox-toolbar__primary,
+#tcs-toolbar .tox-toolbar__group,
+#tcs-toolbar .tox-tbtn,
+#tcs-toolbar .tox-tbtn:hover,
+#tcs-toolbar .tox-tbtn:active,
+#tcs-toolbar .tox-tbtn:focus,
+#tcs-toolbar .tox-tbtn--enabled,
+#tcs-toolbar .tox-tbtn--select,
+#tcs-toolbar .tox-split-button,
+#tcs-toolbar .tox-split-button:hover,
+#tcs-toolbar .tox-split-button__chevron {
+  border-radius: 0 !important;
+}
+
+/* 焦点 / 激活态的轮廓环是 ::after 画的，必须单独归零 */
+#tcs-toolbar .tox-tbtn::after,
+#tcs-toolbar .tox-tbtn:focus::after,
+#tcs-toolbar .tox-tbtn--enabled:focus::after,
+#tcs-toolbar .tox-split-button::after,
+#tcs-toolbar .tox-split-button:focus::after {
+  border-radius: 0 !important;
+}
+
+/* 左侧折叠菜单：唯一的文字按钮，比图标按钮略重 */
+#tcs-toolbar .tox-tbtn[data-mce-name="tcs_menu"] {
+  font-weight: 500;
+  padding: 0 6px;
+}
+
+#tcs-toolbar .tox-tbtn[data-mce-name="tcs_menu"]:hover,
+#tcs-toolbar .tox-tbtn[data-mce-name="tcs_menu"][aria-expanded="true"] {
+  background: var(--tcs-hover, #eeeeee);
+}
+
+/* 菜单组后面加一道竖线，和右侧图标按钮分开 */
+#tcs-toolbar .tox-toolbar__group:first-child {
+  padding-right: 8px;
+  border-right: 1px solid var(--tcs-border, #d9d9d9);
+  margin-right: 2px;
+}
+
+/* 分组之间留一点呼吸，但别画满竖线 —— 单行 7 组全画太碎 */
+#tcs-toolbar .tox-toolbar__group + .tox-toolbar__group {
+  border-left: 1px solid var(--tcs-border, #ececec);
+  margin-left: 2px;
+  padding-left: 4px;
+}
+
+/* ── 选色器的「饱和度 / 亮度」面板 ─────────────────────────────────────────
+ * silver 主题里这块是一张 <canvas>：对话框打开时用 getContext('2d') 现画三层
+ * —— 底色 hsl(hue,100%,50%)、左白右透明、上透明下黑。canvas 画得出来时一切正常；
+ * 但在 Thunderbird 里实测是**整片空白**，面板全白、看不到任何颜色，只剩左下角
+ * 一个取色圆点（截图确认：几何位置都对，就是没内容）。
+ *
+ * 这里在 canvas 底下垫一层等价的三层 CSS 渐变：
+ *   · canvas 有内容 → 内容全不透明（第一层就把整个画布填满了），背景完全看不见
+ *   · canvas 空白   → 背景直接充当面板，照样能看出颜色分布
+ * 色相由 inject.js 把 .tox-hue-slider 的 aria-valuenow 同步到 --tcs-hue。
+ *
+ * 顺序要和 canvas 一致：canvas 是「先白渐变、后黑渐变」，所以黑在上；CSS 里
+ * background-image 的第一层在最上，因此黑色渐变写在前面。
+ */
+.tox-sv-palette .tox-sv-palette-spectrum {
+  background-color: hsl(var(--tcs-hue, 0), 100%, 50%);
+  background-image:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0), #000),
+    linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+  /* 兜底：万一某些环境下 canvas 的高度算成 0，光有背景也铺不出来 */
+  min-height: 160px;
+}
+
+/* 弹出层不能被正文的 overflow 裁掉 */
+.tox-tinymce-aux,
+.tox-silver-sink {
+  z-index: 2147483000 !important;
+}
+
+/* 正文区域：邮件观感，而不是编辑器观感 */
+#tcs-content {
+  outline: none;
+}
+
+#tcs-content:empty::before {
+  content: "";
+}
+
+@media (prefers-color-scheme: dark) {
+  #tcs-toolbar {
+    --tcs-border: #3d3d3d;
+    --tcs-hover: #3a3a3a;
+  }
+}
