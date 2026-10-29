@@ -61,7 +61,8 @@ TinyMCE 不在版本库里，也不是手写源码，而是 `devDependencies` �
 因此发布机必须能访问 npm registry，且**不能加 `--ignore-scripts`**：否则 postinstall 不跑，
 `vendor/` 是空的，`pnpm run build` 会在打包阶段直接报错。
 
-`node_modules` 保留：改完插件/语言清单重新 `pnpm install` 就能再提取，也能随时对着
+`node_modules` 保留：改完插件/语言清单跑一次 `pnpm run postinstall` 就能再提取（依赖没变时
+`pnpm install` 只会说 `Already up to date`，不会重跑 postinstall），也能随时对着
 `node_modules/tinymce` 复查裁掉了什么（pnpm 用软链布局，这个路径照样能读）。约定只有
 `extract-tinymce.mjs` 读它，每次 postinstall 都整棵重建 `vendor/tinymce`，版本错位由
 `check-static.mjs` 第 11 节对账。

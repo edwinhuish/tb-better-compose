@@ -434,7 +434,7 @@ await browser.storage.local.set({ composeStudio.config: { markdownPaste: false }
 2. `compose/config.js` 的 `LANGUAGES`
 3. `compose/i18n.js` 的 `SUPPORTED`
 4. `compose/inject.js` 的 `TM_LANG`（TinyMCE 的语言代码与目录名不总一致，法语是 `fr_FR`），
-   再由 `pnpm install` 重新提取 `vendor/tinymce/langs/<code>.js`
+   再由 `pnpm run postinstall` 重新提取 `vendor/tinymce/langs/<code>.js`
 
 `pnpm run check:i18n` 校验键集合、空文案、占位符、代码引用的键，以及上面四处清单是否互相对得上。
 
@@ -503,19 +503,25 @@ vendor/                第三方静态资源，postinstall 生成
 同一份 `devDependencies` 里还有发版用的 `bumpp`，只被 `pnpm run release` 调用，不进包。
 
 白名单的**唯一来源是 `compose/inject.js`**：`plugins:` 决定要哪些插件，`TM_LANG` 决定要哪些语言文件。
-改完这两处，重新 `pnpm install` 即可（`extract-tinymce.mjs` 每次整棵重建 `vendor/tinymce`）。
+改完这两处，跑一次 `pnpm run postinstall` 即可（`extract-tinymce.mjs` 每次整棵重建 `vendor/tinymce`）。
 实际入包：silver 主题、dom 模型、default 图标、oxide 皮肤、15 个插件（`tcs_fp` 是自己注册的，
 不占上游文件）与 7 个语言包，约 1.9 MB。
 
-`node_modules` 保留：改完插件清单直接 `pnpm install` 就能重新提取，也随时能对着
+`node_modules` 保留：改完插件清单直接 `pnpm run postinstall` 就能重新提取，也随时能对着
 `node_modules/tinymce` 复查裁掉了什么。它不进版本库，且约定只有 `extract-tinymce.mjs` 读它；
 版本错位由 `check-static.mjs` 第 11 节对账（vendor 里 bundle 的版本注释 vs `package.json`）。
+
+**重新提取为什么是 `pnpm run postinstall` 而不是 `pnpm install`**：依赖没变化时 `pnpm install`
+只打印 `Already up to date` 就结束，`postinstall` **不会重跑**（npm 同样如此，这是所有包管理器的
+既有行为，不是 pnpm 特有）。所以「清单改了」「`vendor/` 被删了」这类「依赖没变、只是要重跑提取」
+的场景必须显式跑脚本；`pnpm rebuild` 也不行 —— 它只重跑**依赖**的构建脚本，不碰根项目的
+`postinstall`。只有真要动依赖（首次克隆、改 `devDependencies`）时才用 `pnpm install`。
 
 pnpm 把真实文件放在 `$HOME` 的全局 store，仓库里的 `node_modules/` 只是一层软链：上面的读法不变，
 但删掉 `node_modules/` 不会连带删掉 store，重装很快。
 
 代价：`git clone` 之后不能直接 `pnpm run build`，要先 `pnpm install`（`vendor/` 是生成物）。
-**别 `rm -rf vendor`** —— 恢复方式是再 `pnpm install`。
+**别 `rm -rf vendor`** —— 恢复方式是 `pnpm run postinstall`。
 
 ### 可复现构建
 
@@ -527,7 +533,8 @@ CRC（没装 `unzip` 则跳过，不把它变成依赖）。
 
 | 命令 | 做什么 |
 |---|---|
-| `pnpm install` | 装依赖 → postinstall 提取 TinyMCE → `vendor/tinymce/` |
+| `pnpm install` | 装依赖 → postinstall 提取 TinyMCE → `vendor/tinymce/`（依赖已最新时跳过 postinstall） |
+| `pnpm run postinstall` | 只重跑提取：改过插件/语言清单、或 `vendor/` 丢了时用它 |
 | `pnpm run check` | `check:i18n` → `check:static` → `test`（共 82 条断言） |
 | `pnpm run xpi` | 打包到 `dist/better-compose-<version>.xpi` |
 | `pnpm run build` | `check` → `xpi` |
@@ -558,7 +565,7 @@ CI 与 Release 跑的是同一条命令，不存在「CI 能过、本地过不�
 2. Thunderbird → 工具 → 开发者工具 → 调试附加组件 → 此 Thunderbird
 3. 「临时载入附加组件」→ 选**项目根目录里的 `manifest.json`**
 
-改完代码在调试器里点「重新载入」；改过插件/语言清单要先 `pnpm install` 重新提取。
+改完代码在调试器里点「重新载入」；改过插件/语言清单要先 `pnpm run postinstall` 重新提取。
 临时加载在 Thunderbird 重启后失效。
 
 **打包安装**

@@ -56,9 +56,10 @@ section('[2] plugins');
 const { plugins } = readWhitelist(ROOT);
 for (const p of plugins) {
   // 装配树里的 TinyMCE 是「上次 postinstall」铺的：改过 inject.js 的 plugins 之后
-  // 没重新 pnpm install，就会在这里露出来（包能打出来，但编辑器里插件静默失效）。
+  // 没重跑 postinstall，就会在这里露出来（包能打出来，但编辑器里插件静默失效）。
+  // 注意 `pnpm install` 在依赖已最新时不会重跑 postinstall，所以提示的是 `pnpm run postinstall`。
   if (!existsSync(join(ROOT, TINYMCE_DIR, 'plugins', p, 'plugin.min.js'))) {
-    fail(`插件没进 ${TINYMCE_DIR}: ${p}（改过 inject.js 之后重新 pnpm install）`);
+    fail(`插件没进 ${TINYMCE_DIR}: ${p}（改过 inject.js 之后跑 pnpm run postinstall）`);
   }
 }
 console.log('  ', plugins.length, '个插件:', plugins.join(' '));
@@ -379,7 +380,7 @@ if (!tmVer) {
 } else if (!declaredTm) {
   fail('package.json 的 devDependencies 里没有声明 tinymce 版本');
 } else if (tmVer[1] !== declaredTm) {
-  fail(`装配树里的 TinyMCE 是 ${tmVer[1]}，但 package.json 声明的是 ${declaredTm}（重新 pnpm install 提取）`);
+  fail(`装配树里的 TinyMCE 是 ${tmVer[1]}，但 package.json 声明的是 ${declaredTm}（跑 pnpm run postinstall 重新提取）`);
 } else {
   console.log('   version:', tmVer[1], '(与 package.json 一致)');
 }

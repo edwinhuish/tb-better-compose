@@ -171,7 +171,7 @@ if (!mapMatch) {
       continue;
     }
     if (!existsSync(join(ROOT, TINYMCE_DIR, 'langs', code + '.js'))) {
-      fail(`vendor/tinymce/langs/${code}.js 不存在（${locale} 需要它；改过 TM_LANG 之后重新 pnpm install）`);
+      fail(`vendor/tinymce/langs/${code}.js 不存在（${locale} 需要它；改过 TM_LANG 之后跑 pnpm run postinstall）`);
     }
   }
   console.log('   映射:', Object.entries(map).map(([k, v]) => k + '→' + (v || '内置')).join(' '));

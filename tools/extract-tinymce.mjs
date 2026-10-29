@@ -163,9 +163,10 @@ export function tinymceFiles(root) {
  */
 export function ensureTinymce(root) {
   if (existsSync(join(root, TINYMCE_DIR, 'tinymce.min.js'))) return;
-  console.error(`\n找不到 ${TINYMCE_DIR}/tinymce.min.js —— 它是 pnpm 的 postinstall 生成的：`);
-  console.error('  pnpm install   # 装依赖 → 按白名单提取到 vendor/tinymce');
-  console.error('  （vendor/ 是生成物、不在版本库里，所以 `rm -rf vendor` 后要重装一次）\n');
+  console.error(`\n找不到 ${TINYMCE_DIR}/tinymce.min.js —— 它是 postinstall 生成的：`);
+  console.error('  pnpm run postinstall   # 依赖已装好时，只重跑提取');
+  console.error('  pnpm install           # 还没装依赖时，装依赖顺带提取');
+  console.error('  （vendor/ 是生成物、不在版本库里；`pnpm install` 在依赖已最新时不重跑 postinstall）\n');
   process.exit(1);
 }
 
