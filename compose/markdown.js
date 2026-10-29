@@ -29,7 +29,7 @@
   // 与 manifest.json 的 version 保持一致。这个模块是纯函数（node 里直接断言，
   // 拿不到 browser.runtime），只能写字面量，所以靠 tools/check-static.mjs 第 9 节
   // 核对两处是否相等 —— 免得面板上显示一个版本、about:addons 里是另一个。
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
 
   // ── 基础工具 ────────────────────────────────────────────────────────────────
   var ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
