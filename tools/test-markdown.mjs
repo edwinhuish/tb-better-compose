@@ -5,7 +5,7 @@
  * markdown.js 是 IIFE 挂 window.__tcsMarkdown，没有 ESM 导出；
  * 这里用一个假 window 跑它，拿到同一份 API。
  *
- * 跑法：node tools/test-markdown.mjs（npm test 里会顺带跑）
+ * 跑法：node tools/test-markdown.mjs（pnpm test 里会顺带跑）
  */
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';

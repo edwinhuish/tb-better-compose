@@ -23,7 +23,7 @@ on:
 
 # 创建 Release、上传产物、必要时补打标签，都走仓库自带的 GITHUB_TOKEN。
 # 除此之外不需要任何自定义 secret：
-#   - 没有 npm token（tinymce / tinymce-i18n 都是公开包，npm ci 不需要认证）
+#   - 没有 registry token（tinymce / tinymce-i18n 都是公开包，pnpm install 不需要认证）
 #   - 没有 ATN 凭据（上传 addons.thunderbird.net 仍是手动流程，见 PUBLISHING.md；
 #     将来若接 web-ext sign，凭据名是 WEB_EXT_API_KEY / WEB_EXT_API_SECRET，放在
 #     environment: release 里即可，届时只加一步、不动这里）
@@ -53,16 +53,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      # pnpm 必须装在 setup-node 之前：cache: pnpm 要先能调 `pnpm store path`。
+      # 版本来自 package.json 的 packageManager 字段。
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v4.4.0
+
       - name: 安装 Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           # 与 CI 矩阵里跑过的版本保持一致，保证「CI 绿的构建」和「发出去的构建」同源
           node-version: '24.x'
-          cache: npm
-          cache-dependency-path: package-lock.json
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: 安装依赖
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
       # 确定标签 + 版本号，并在这里把两者钉死。
       # 标签格式不对、或与 manifest 不一致，都在这一步失败 —— 此时还没开始打包，
@@ -103,10 +108,10 @@ jobs:
 
       # 发布前把 CI 的那套流水线原样再跑一遍：标签推送不会触发 ci.yml，
       # 靠 run_id/last CI 状态去猜反而更脆。这里多花的钱比发错包便宜。
-      # npm run build = check → xpi，与本地、与 CI 是同一条命令
-      # （哪一步失败由 npm 打印的 `> check:static` 这类前缀指明）。
+      # pnpm run build = check → xpi，与本地、与 CI 是同一条命令
+      # （哪一步失败由 pnpm 打印的 `$ node tools/check-static.mjs` 这类前缀指明）。
       - name: 检查并打包
-        run: npm run build
+        run: pnpm run build
 
       # 产物本来就落在 dist/，这里只当场验证「同样内容打两次字节一致」——
       # 这是 PUBLISHING.md 承诺的可复现构建，也是 md5 对得上就说明包没被改过。

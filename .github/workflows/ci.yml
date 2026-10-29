@@ -44,31 +44,37 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
+      # pnpm 必须装在 setup-node 之前：下面 cache: pnpm 要先能调 `pnpm store path`。
+      # 版本来自 package.json 的 packageManager 字段，这里不重复声明。
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v4.4.0
+
       - name: 安装 Node ${{ matrix.node }}
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version: ${{ matrix.node }}
-          # 缓存键跟着 package-lock.json 走：锁文件不变就命中，变了自动重建。
+          # 缓存键跟着 pnpm-lock.yaml 走：锁文件不变就命中，变了自动重建。
           # 唯一的外部依赖是 TinyMCE（tinymce + tinymce-i18n，解包后约 40 MB），
           # 缓存命中能把「装依赖」压到几秒。
-          cache: npm
-          cache-dependency-path: package-lock.json
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-      # 用 npm ci 而不是 npm install：锁文件必须与 package.json 完全一致，
-      # 否则产物就不可复现了。这一步的 postinstall 会把 TinyMCE 提取到
+      # 用 --frozen-lockfile 而不是普通 install：锁文件必须与 package.json 完全一致，
+      # 否则产物就不可复现了（CI 环境下 pnpm 默认就是冻结模式，这里写出来免得有人
+      # 改了默认值就悄悄失效）。这一步的 postinstall 会把 TinyMCE 提取到
       # vendor/tinymce（生成物，不在仓库里）—— 打包全靠那份。
       - name: 安装依赖
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
       # 静态校验 + 文案一致性 + 三个纯函数单测（共 82 条断言）
       - name: 代码检查与测试
-        run: npm run check
+        run: pnpm run check
 
       # 打包链路本身也要在 CI 里跑一次：它坏掉比代码坏掉更难发现。
-      # npm run build 是 check + xpi 的完整流水线，三个平台原生可跑
+      # pnpm run build 是 check + xpi 的完整流水线，三个平台原生可跑
       # （以前要 shell: bash 才能跑 build.sh，Windows 上靠 Git Bash）。
       - name: 打包 xpi
-        run: npm run build
+        run: pnpm run build
 
       # 可复现构建是 PUBLISHING.md 里写明的承诺（时间戳固定在 2020-01-01），
       # 有人改了 build-xpi.mjs 里的头信息就会打破它 —— 这里连打两次比字节。

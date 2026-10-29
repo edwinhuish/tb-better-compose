@@ -10,7 +10,7 @@
  *  5. 用到的 icon 名在 icons.min.js 里存在（写错的 icon 会被静默忽略）
  *  6. 我们自己的代码里不出现外网地址，且关键资源项都指向扩展包内
  *
- * 名字与 npm 命令对齐：`npm run check:static` 跑的就是 check-static.mjs。
+ * 名字与 pnpm 命令对齐：`pnpm run check:static` 跑的就是 check-static.mjs。
  * （原名 verify.mjs —— 文件叫 verify、命令叫 check:static，同一件事两套词，
  * 查问题时得先在心里翻译一次。）
  *
@@ -56,9 +56,9 @@ section('[2] plugins');
 const { plugins } = readWhitelist(ROOT);
 for (const p of plugins) {
   // 装配树里的 TinyMCE 是「上次 postinstall」铺的：改过 inject.js 的 plugins 之后
-  // 没重新 npm ci，就会在这里露出来（包能打出来，但编辑器里插件静默失效）。
+  // 没重新 pnpm install，就会在这里露出来（包能打出来，但编辑器里插件静默失效）。
   if (!existsSync(join(ROOT, TINYMCE_DIR, 'plugins', p, 'plugin.min.js'))) {
-    fail(`插件没进 ${TINYMCE_DIR}: ${p}（改过 inject.js 之后重新 npm ci）`);
+    fail(`插件没进 ${TINYMCE_DIR}: ${p}（改过 inject.js 之后重新 pnpm install）`);
   }
 }
 console.log('  ', plugins.length, '个插件:', plugins.join(' '));
@@ -379,7 +379,7 @@ if (!tmVer) {
 } else if (!declaredTm) {
   fail('package.json 的 devDependencies 里没有声明 tinymce 版本');
 } else if (tmVer[1] !== declaredTm) {
-  fail(`装配树里的 TinyMCE 是 ${tmVer[1]}，但 package.json 声明的是 ${declaredTm}（重新 npm ci 提取）`);
+  fail(`装配树里的 TinyMCE 是 ${tmVer[1]}，但 package.json 声明的是 ${declaredTm}（重新 pnpm install 提取）`);
 } else {
   console.log('   version:', tmVer[1], '(与 package.json 一致)');
 }

@@ -3,10 +3,12 @@ dist/
 *.xpi
 
 # 第三方静态资源：postinstall（tools/extract-tinymce.mjs）按白名单从 node_modules
-# 提取到 vendor/tinymce，是生成物。克隆后先 npm install 才会有它
+# 提取到 vendor/tinymce，是生成物。克隆后先 pnpm install 才会有它
 vendor/
 
-# 依赖：保留（提取完不再删除），但也不进版本库
+# 依赖：保留（提取完不再删除），但也不进版本库。
+# pnpm 的 node_modules 只是一层软链，真实文件在 $HOME 的全局 store 里，
+# 删掉这个目录不会把 store 一起删掉
 node_modules/
 
 # 手工回归页面：本地留着用，不进仓库（沙箱里跑不了浏览器，只能人工点）

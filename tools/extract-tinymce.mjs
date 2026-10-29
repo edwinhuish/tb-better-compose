@@ -7,7 +7,7 @@
  * 「提取的结果对不对」「提取跑过没有」，依赖提取器本身是合理的。
  * 只读的清单查看器在 tools/list-tinymce-files.mjs，它 import 这里，不反向依赖。
  *
- * 默认动作就是唯一的动作：npm postinstall 里直接 `node tools/extract-tinymce.mjs`。
+ * 默认动作就是唯一的动作：pnpm 的 postinstall 里直接 `node tools/extract-tinymce.mjs`。
  * 单操作的文件不需要子命令分发 —— 想改「提取什么」请改 compose/inject.js。
  *
  * ── 为什么必须裁剪 ──────────────────────────────────────────────────────
@@ -163,8 +163,8 @@ export function tinymceFiles(root) {
  */
 export function ensureTinymce(root) {
   if (existsSync(join(root, TINYMCE_DIR, 'tinymce.min.js'))) return;
-  console.error(`\n找不到 ${TINYMCE_DIR}/tinymce.min.js —— 它是 npm 的 postinstall 生成的：`);
-  console.error('  npm install   # 或 npm ci：装依赖 → 按白名单提取到 vendor/tinymce');
+  console.error(`\n找不到 ${TINYMCE_DIR}/tinymce.min.js —— 它是 pnpm 的 postinstall 生成的：`);
+  console.error('  pnpm install   # 装依赖 → 按白名单提取到 vendor/tinymce');
   console.error('  （vendor/ 是生成物、不在版本库里，所以 `rm -rf vendor` 后要重装一次）\n');
   process.exit(1);
 }

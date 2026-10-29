@@ -434,9 +434,9 @@ await browser.storage.local.set({ composeStudio.config: { markdownPaste: false }
 2. `compose/config.js` 的 `LANGUAGES`
 3. `compose/i18n.js` 的 `SUPPORTED`
 4. `compose/inject.js` 的 `TM_LANG`（TinyMCE 的语言代码与目录名不总一致，法语是 `fr_FR`），
-   再由 `npm install` 重新提取 `vendor/tinymce/langs/<code>.js`
+   再由 `pnpm install` 重新提取 `vendor/tinymce/langs/<code>.js`
 
-`npm run check:i18n` 校验键集合、空文案、占位符、代码引用的键，以及上面四处清单是否互相对得上。
+`pnpm run check:i18n` 校验键集合、空文案、占位符、代码引用的键，以及上面四处清单是否互相对得上。
 
 ---
 
@@ -455,12 +455,13 @@ compose/
 options/               选项页（工具栏可视化编辑、段落格式、开关、界面语言、诊断日志）
 icons/                 icon-48/96/128.png + icon.svg
 _locales/              8 种语言 × 165 条文案
-vendor/tinymce/        上游静态资源（生成物，npm install 后出现）
+vendor/tinymce/        上游静态资源（生成物，pnpm install 后出现）
 
 ── 也在根上，但不进包 ────────────────────────────────────────────
 package.json           唯一入口与依赖声明（postinstall / check / test / xpi / build / release）
-package-lock.json      依赖的精确版本 + 完整性摘要，以及项目自身的 version
-node_modules/          依赖，装完保留
+                       也是包管理器的版本来源（`packageManager` 字段）
+pnpm-lock.yaml         依赖的精确版本 + 完整性摘要（连同 pnpm 自身的版本一起钉住）
+node_modules/          依赖，装完保留（pnpm 的软链布局，真实文件在全局 store）
 tools/
   extract-tinymce.mjs    提取（也是清单的定义处）：要哪些文件、各自从 node_modules 哪里来
   list-tinymce-files.mjs 只读视图：打印上面那份清单
@@ -480,7 +481,7 @@ vendor/                第三方静态资源，postinstall 生成
 .harness/              本地手工回归页，不进仓库
 ```
 
-工具链全在 node 上，零第三方运行时依赖：`npm run check`、`npm run build`。
+工具链全在 node 上，零第三方运行时依赖：`pnpm run check`、`pnpm run build`。
 
 ### 项目根就是包根
 
@@ -497,21 +498,24 @@ vendor/                第三方静态资源，postinstall 生成
 ### TinyMCE 是构建期依赖
 
 `devDependencies` 里的 `tinymce@7.9.3` 与 `tinymce-i18n@26.9.28`（精确版本，完整性写在
-`package-lock.json`）。`npm install` 后由 **postinstall**（`tools/extract-tinymce.mjs`）按白名单
+`pnpm-lock.yaml`）。`pnpm install` 后由 **postinstall**（`tools/extract-tinymce.mjs`）按白名单
 把用到的部分提取到 `vendor/tinymce/`，包内路径就是 `vendor/tinymce/…`。
-同一份 `devDependencies` 里还有发版用的 `bumpp`，只被 `npm run release` 调用，不进包。
+同一份 `devDependencies` 里还有发版用的 `bumpp`，只被 `pnpm run release` 调用，不进包。
 
 白名单的**唯一来源是 `compose/inject.js`**：`plugins:` 决定要哪些插件，`TM_LANG` 决定要哪些语言文件。
-改完这两处，重新 `npm install` 即可（`extract-tinymce.mjs` 每次整棵重建 `vendor/tinymce`）。
+改完这两处，重新 `pnpm install` 即可（`extract-tinymce.mjs` 每次整棵重建 `vendor/tinymce`）。
 实际入包：silver 主题、dom 模型、default 图标、oxide 皮肤、15 个插件（`tcs_fp` 是自己注册的，
 不占上游文件）与 7 个语言包，约 1.9 MB。
 
-`node_modules` 保留：改完插件清单直接 `npm install` 就能重新提取，也随时能对着
+`node_modules` 保留：改完插件清单直接 `pnpm install` 就能重新提取，也随时能对着
 `node_modules/tinymce` 复查裁掉了什么。它不进版本库，且约定只有 `extract-tinymce.mjs` 读它；
 版本错位由 `check-static.mjs` 第 11 节对账（vendor 里 bundle 的版本注释 vs `package.json`）。
 
-代价：`git clone` 之后不能直接 `npm run build`，要先 `npm install`（`vendor/` 是生成物）。
-**别 `rm -rf vendor`** —— 恢复方式是再 `npm install`。
+pnpm 把真实文件放在 `$HOME` 的全局 store，仓库里的 `node_modules/` 只是一层软链：上面的读法不变，
+但删掉 `node_modules/` 不会连带删掉 store，重装很快。
+
+代价：`git clone` 之后不能直接 `pnpm run build`，要先 `pnpm install`（`vendor/` 是生成物）。
+**别 `rm -rf vendor`** —— 恢复方式是再 `pnpm install`。
 
 ### 可复现构建
 
@@ -519,24 +523,30 @@ vendor/                第三方静态资源，postinstall 生成
 想确认某个 xpi 是不是本地改过，比一下 md5 或 sha256 就知道。打完会用 `unzip -t` 让独立实现复核
 CRC（没装 `unzip` 则跳过，不把它变成依赖）。
 
-### npm scripts
+### pnpm scripts
 
 | 命令 | 做什么 |
 |---|---|
-| `npm install` | 装依赖 → postinstall 提取 TinyMCE → `vendor/tinymce/` |
-| `npm run check` | `check:i18n` → `check:static` → `test`（共 82 条断言） |
-| `npm run xpi` | 打包到 `dist/better-compose-<version>.xpi` |
-| `npm run build` | `check` → `xpi` |
-| `npm run release` | `bumpp`：改四处版本号 → `check` → 提交 → 打标签（不推送，见 PUBLISHING 第六节） |
+| `pnpm install` | 装依赖 → postinstall 提取 TinyMCE → `vendor/tinymce/` |
+| `pnpm run check` | `check:i18n` → `check:static` → `test`（共 82 条断言） |
+| `pnpm run xpi` | 打包到 `dist/better-compose-<version>.xpi` |
+| `pnpm run build` | `check` → `xpi` |
+| `pnpm run release` | `bumpp`：改三处版本号 → `check` → 提交 → 打标签（不推送，见 PUBLISHING 第六节） |
+
+包管理器是 pnpm，版本写在 `package.json` 的 `packageManager` 字段（`pnpm@12.4.1`）：CI 的
+`pnpm/action-setup` 直接读这个字段，本地装同一个版本即可（`corepack enable` 也行）。
+锁文件只有一个 `pnpm-lock.yaml` —— `package-lock.json` 已删除，两个锁文件并存时谁都不知道该信哪个。
 
 CI 与 Release 跑的是同一条命令，不存在「CI 能过、本地过不了」的分叉。
 
 ### 版本号只有一个来源
 
-`package.json` 的 `version` 是版本号的来源，`npm run release`（bumpp）负责把它同步到
-`package-lock.json`、`manifest.json` 与 `compose/markdown.js` 的 `VERSION`，然后跑
-`npm run check` 当门禁、提交 `chore: release v<version>` 并打 `v<version>` 标签。
-四处任意一处对不上，`check-static.mjs` 第 9 节会当场报出来。
+`package.json` 的 `version` 是版本号的来源，`pnpm run release`（bumpp）负责把它同步到
+`manifest.json` 与 `compose/markdown.js` 的 `VERSION`，然后跑
+`pnpm run check` 当门禁、提交 `chore: release v<version>` 并打 `v<version>` 标签。
+三处任意一处对不上，`check-static.mjs` 第 9 节会当场报出来。
+
+`pnpm-lock.yaml` 不在 bumpp 的清单里：pnpm 的锁文件只记依赖，根项目的 version 不落在这里。
 
 ---
 
@@ -544,18 +554,18 @@ CI 与 Release 跑的是同一条命令，不存在「CI 能过、本地过不�
 
 **临时加载（调试用）**
 
-1. `npm install`
+1. `pnpm install`
 2. Thunderbird → 工具 → 开发者工具 → 调试附加组件 → 此 Thunderbird
 3. 「临时载入附加组件」→ 选**项目根目录里的 `manifest.json`**
 
-改完代码在调试器里点「重新载入」；改过插件/语言清单要先 `npm install` 重新提取。
+改完代码在调试器里点「重新载入」；改过插件/语言清单要先 `pnpm install` 重新提取。
 临时加载在 Thunderbird 重启后失效。
 
 **打包安装**
 
 ```bash
-npm install
-npm run build     # → dist/better-compose-<version>.xpi
+pnpm install
+pnpm run build     # → dist/better-compose-<version>.xpi
 ```
 
 然后：工具 → 附加组件和主题 → 齿轮 → 从文件安装附加组件。

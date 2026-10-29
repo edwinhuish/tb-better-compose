@@ -17,22 +17,22 @@
 ## 二、打包
 
 ```bash
-npm install     # 装依赖 → postinstall 把 TinyMCE 提取到 vendor/tinymce/
-npm run build
+pnpm install    # 装依赖 → postinstall 把 TinyMCE 提取到 vendor/tinymce/
+pnpm run build
 # → dist/better-compose-1.0.0.xpi
 ```
 
-`npm run build` 是 `check → xpi` 两段的串：
+`pnpm run build` 是 `check → xpi` 两段的串：
 
 | 步骤 | 命令 | 做什么 |
 |---|---|---|
-| 0 | `npm install` 的 `postinstall` | 按清单把 TinyMCE 提取到 `vendor/tinymce/`（`node_modules` 保留） |
-| 1 | `npm run check` | `check-i18n.mjs` → `check-static.mjs` → 三个单测（共 82 条断言） |
-| 2 | `npm run xpi` | 按顶层白名单直接读项目根，打成 zip（手写 zip，只用 node 内置 zlib）→ `unzip -t` 复核 |
+| 0 | `pnpm install` 的 `postinstall` | 按清单把 TinyMCE 提取到 `vendor/tinymce/`（`node_modules` 保留） |
+| 1 | `pnpm run check` | `check-i18n.mjs` → `check-static.mjs` → 三个单测（共 82 条断言） |
+| 2 | `pnpm run xpi` | 按顶层白名单直接读项目根，打成 zip（手写 zip，只用 node 内置 zlib）→ `unzip -t` 复核 |
 
-构建入口只有 npm scripts，没有 `build.sh`：同一份流水线写两遍，改一处忘另一处就会出现
-「`npm run check` 绿、`./build.sh` 红」。三个平台都用同一条 `npm run build`，Windows 上不需要 Git Bash。
-（命令叫 `xpi` 而不是 `pack`，是因为 `npm pack` 是 npm 自带命令。）
+构建入口只有 pnpm scripts，没有 `build.sh`：同一份流水线写两遍，改一处忘另一处就会出现
+「`pnpm run check` 绿、`./build.sh` 红」。三个平台都用同一条 `pnpm run build`，Windows 上不需要 Git Bash。
+（命令叫 `xpi` 而不是 `pack`，是因为 `pnpm pack` 是包管理器自带命令。）
 
 打包是**可复现**的：zip 内时间戳固定成 2020-01-01 12:00、文件顺序排序，同样内容连打两次字节一致。
 所以「这个 xpi 是不是我本地改过」比一下 md5 或 sha256 就知道。
@@ -59,22 +59,23 @@ TinyMCE 不在版本库里，也不是手写源码，而是 `devDependencies` �
 （`postinstall`）按 `compose/inject.js` 的 `plugins` / `TM_LANG` 提取子集到 `vendor/tinymce/`。
 
 因此发布机必须能访问 npm registry，且**不能加 `--ignore-scripts`**：否则 postinstall 不跑，
-`vendor/` 是空的，`npm run build` 会在打包阶段直接报错。
+`vendor/` 是空的，`pnpm run build` 会在打包阶段直接报错。
 
-`node_modules` 保留：改完插件/语言清单重新 `npm install` 就能再提取，也能随时对着
-`node_modules/tinymce` 复查裁掉了什么。约定只有 `extract-tinymce.mjs` 读它，每次 postinstall
-都整棵重建 `vendor/tinymce`，版本错位由 `check-static.mjs` 第 11 节对账。
+`node_modules` 保留：改完插件/语言清单重新 `pnpm install` 就能再提取，也能随时对着
+`node_modules/tinymce` 复查裁掉了什么（pnpm 用软链布局，这个路径照样能读）。约定只有
+`extract-tinymce.mjs` 读它，每次 postinstall 都整棵重建 `vendor/tinymce`，版本错位由
+`check-static.mjs` 第 11 节对账。
 
 ---
 
 ## 三、上传前自查
 
 ```bash
-npm run check        # 下面三项一次跑完，与 CI、与发布工作流是同一条命令
-npm run check:i18n   # 八种语言的键集合、占位符、语言清单四处对齐
-npm run check:static # 静态校验 11 节：插件、按钮、命令名、图标名、零外链、装配顺序、
-                     # 发布形态、版本号、工具栏直角、TinyMCE 版本与许可
-npm test             # 32 + 31 + 19 = 82 条断言
+pnpm run check        # 下面三项一次跑完，与 CI、与发布工作流是同一条命令
+pnpm run check:i18n   # 八种语言的键集合、占位符、语言清单四处对齐
+pnpm run check:static # 静态校验 11 节：插件、按钮、命令名、图标名、零外链、装配顺序、
+                      # 发布形态、版本号、工具栏直角、TinyMCE 版本与许可
+pnpm test             # 32 + 31 + 19 = 82 条断言
 ```
 
 再手动过一遍（这几件事静态检查抓不到）：
@@ -135,7 +136,7 @@ ATN 开发者中心（<https://addons.thunderbird.net/developers/>）上架时�
 **原样发行文件**（GPL-2.0-or-later），由 `tools/extract-tinymce.mjs` 在 `postinstall` 阶段按白名单
 提取，打包时原样入包：没有二次混淆，也没有打补丁；许可文本 `vendor/tinymce/license.md` 随包。
 裁剪只是不提取用不到的插件、皮肤与语言包，文件本身一字未改。语言包来自 `tinymce-i18n@26.9.28`
-的 `langs7/`，同样原样入包。两个依赖的版本与完整性摘要记在 `package.json` / `package-lock.json`；
+的 `langs7/`，同样原样入包。两个依赖的版本与完整性摘要记在 `package.json` / `pnpm-lock.yaml`；
 `check-static.mjs` 第 11 节还会比对「包内 bundle 的版本注释」与「package.json 声明的版本」，
 对不上直接构建失败。
 
@@ -147,31 +148,32 @@ ATN 开发者中心（<https://addons.thunderbird.net/developers/>）上架时�
 - 版本号统一由 [bumpp](https://github.com/antfu-collective/bumpp) 改，不要手工编辑散落的字面量：
 
   ```bash
-  npm run release
+  pnpm run release
   ```
 
   `package.json` 里的脚本是：
 
   ```
-  bumpp package.json package-lock.json manifest.json compose/markdown.js \
-        --git-check -x "npm run check" --no-push
+  bumpp package.json manifest.json compose/markdown.js \
+        --git-check -x "pnpm run check" --no-push
   ```
 
-  一次改四处：`package.json` 的 `version`（版本号的来源）、`package-lock.json` 的两个
-  `version` 字段、`manifest.json` 的 `version`（ATN 与 about:addons 读它）、
-  `compose/markdown.js` 的 `VERSION`（纯函数模块拿不到 `browser`，只能写字面量）。
+  一次改三处：`package.json` 的 `version`（版本号的来源）、`manifest.json` 的 `version`
+  （ATN 与 about:addons 读它）、`compose/markdown.js` 的 `VERSION`（纯函数模块拿不到
+  `browser`，只能写字面量）。`pnpm-lock.yaml` 不必列进来 —— pnpm 的锁文件只记依赖，
+  根项目的 version 不落在里面（`package-lock.json` 才有 `packages[""].version` 那一份）。
 
-  `--git-check` 要求工作区干净，`-x` 在提交前跑一遍 `npm run check`：版本没对齐、文案缺失、
+  `--git-check` 要求工作区干净，`-x` 在提交前跑一遍 `pnpm run check`：版本没对齐、文案缺失、
   出现外链之类的问题会在这里被拦下，不会带着坏状态打出标签。bumpp 随后提交
   `chore: release v<version>` 并打 `v<version>` 标签。
   脚本带 `--no-push`：**推标签会立刻触发 Release 工作流**，这一步留给人确认。
 
-- 发布步骤：`npm run release` → `git push --follow-tags` → 等 Release 绿 →
+- 发布步骤：`pnpm run release` → `git push --follow-tags` → 等 Release 绿 →
   下载同一份 xpi 传 ATN。
-- 手工改也仍然能用（改完跑 `npm run check`），漏改一处 `check-static.mjs` 第 9 节会当场报出来——
+- 手工改也仍然能用（改完跑 `pnpm run check`），漏改一处 `check-static.mjs` 第 9 节会当场报出来——
   这条是兜底，不是常规路径。
-- 升级 TinyMCE：改 `package.json` 里 `devDependencies.tinymce` 的精确版本 → `npm install` →
-  `npm run build`。语言包（`tinymce-i18n`）版本独立；注意只有 `langs7/` 是给 TinyMCE 7 用的
+- 升级 TinyMCE：改 `package.json` 里 `devDependencies.tinymce` 的精确版本 → `pnpm install` →
+  `pnpm run build`。语言包（`tinymce-i18n`）版本独立；注意只有 `langs7/` 是给 TinyMCE 7 用的
   （`langs8/` 是 TinyMCE 8，语言代码命名也从 `zh_CN` 变成 `zh-CN`）。插件清单变了的话，
   `check-static.mjs` 第 2 节会报「插件文件缺失」。
 - 回滚：ATN 允许重新上传旧版本（版本号不能重复），但用户端不会自动降级。
@@ -183,20 +185,22 @@ ATN 开发者中心（<https://addons.thunderbird.net/developers/>）上架时�
 ## 七、自动化：CI 与 Release
 
 两个工作流在 `.github/workflows/` 下，各管一件事，跑的命令与本地完全一样
-（`npm run check` / `npm run build`）。`package.json` 是唯一的入口定义；第三方依赖只有
-构建期的 tinymce / tinymce-i18n 与发布期的 bumpp，版本与完整性由 `package-lock.json` 钉住
-（也顺带当 npm 缓存键）。
+（`pnpm run check` / `pnpm run build`）。`package.json` 是唯一的入口定义；第三方依赖只有
+构建期的 tinymce / tinymce-i18n 与发布期的 bumpp，版本与完整性由 `pnpm-lock.yaml` 钉住
+（也顺带当 pnpm 缓存键）。包管理器自身的版本（`pnpm@12.4.1`）也只在 `package.json` 的
+`packageManager` 字段声明一次，`pnpm/action-setup` 直接读它。
 
 ### CI（`ci.yml`）
 
 - **触发**：push 到 `master`、指向 `master` 的 PR、手动触发。
 - **矩阵**：Linux 上 Node 22 / 24 / 26，macOS 与 Windows 各跑一次 Node 26。
-  后两个平台要验的只是「`npm run build` 在三个平台上跑不跑得通」，与 Node 小版本无关。
-- **步骤**：`npm ci`（postinstall 提取 TinyMCE）→ `npm run check`（82 条断言 + 文案一致性 +
-  静态校验）→ `npm run build`（检查 + 打包）→ 在 `ubuntu-latest · Node 24` 上连打两次比字节
-  （守住可复现构建）→ 上传 xpi（保留 7 天）。
+  后两个平台要验的只是「`pnpm run build` 在三个平台上跑不跑得通」，与 Node 小版本无关。
+- **步骤**：`pnpm/action-setup`（版本取自 `packageManager`，必须排在 `setup-node` 之前，
+  否则 `cache: pnpm` 找不到 pnpm）→ `pnpm install --frozen-lockfile`（postinstall 提取 TinyMCE）
+  → `pnpm run check`（82 条断言 + 文案一致性 + 静态校验）→ `pnpm run build`（检查 + 打包）
+  → 在 `ubuntu-latest · Node 24` 上连打两次比字节（守住可复现构建）→ 上传 xpi（保留 7 天）。
 - **并发与缓存**：PR 连续推送取消上一次（`cancel-in-progress`），`master` 不取消；
-  npm 缓存键跟着 `package-lock.json` 走。
+  pnpm 缓存键跟着 `pnpm-lock.yaml` 走。
 - **门禁**：末尾的 `CI 通过` job 汇总矩阵结果，分支保护只勾这一个。
 - **密钥**：不需要，`permissions: contents: read`。
 
@@ -207,7 +211,7 @@ ATN 开发者中心（<https://addons.thunderbird.net/developers/>）上架时�
 - **版本号来源**：唯一来源是 `manifest.json` 的 `version`（`markdown.js` 的 `VERSION` 由
   `check-static.mjs` 强制对齐）。标签必须等于 `v<version>`，不一致在打包前直接失败，
   不会出现「标签 v1.1.0、包内 1.0.0」。
-- **步骤**：解析并校验版本（Node 24）→ `npm run build`（标签推送不触发 `ci.yml`，所以检查在这里
+- **步骤**：解析并校验版本（Node 24）→ `pnpm run build`（标签推送不触发 `ci.yml`，所以检查在这里
   原样再跑一遍）→ 复核可复现并生成 `SHA256SUMS.txt` → `gh api .../releases/generate-notes`
   生成变更列表、补上安装说明 → `gh release create`（已存在则 `upload --clobber` + `edit`，可安全重跑）。
 - **产物**：`better-compose-<version>.xpi` + `SHA256SUMS.txt`；校验用 `sha256sum -c SHA256SUMS.txt`。
@@ -224,5 +228,5 @@ Release **不依赖** CI 的运行结果（不串 `workflow_run`），而是自�
 唯一的软约束是「标签应打在 `master` 上」，不在只给 warning 而不是失败 ——
 从维护分支发补丁版本是合理需求。
 
-日常发一版：改两处版本号 → 提交 → `git tag v1.0.1 && git push origin v1.0.1` →
-等 Release 绿 → 下载 xpi 传 ATN。
+日常发一版：`pnpm run release`（改三处版本号 → 检查 → 提交 → 打标签，见第六节）→
+`git push --follow-tags` → 等 Release 绿 → 下载 xpi 传 ATN。

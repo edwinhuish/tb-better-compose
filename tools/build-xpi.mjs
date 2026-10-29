@@ -58,7 +58,7 @@ if (!existsSync(join(ROOT, 'manifest.json'))) {
 const missing = PACKAGE_ENTRIES.filter(e => !existsSync(join(ROOT, e)));
 if (missing.length) {
   console.error('\n包内白名单里有不存在的东西：\n' + missing.map(e => '  ' + e).join('\n'));
-  console.error('  vendor/ 是 postinstall 生成的：npm install\n');
+  console.error('  vendor/ 是 postinstall 生成的：pnpm install\n');
   process.exit(1);
 }
 
