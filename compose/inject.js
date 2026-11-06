@@ -496,7 +496,15 @@ let __tcsSay = null;
       .sort()
       .map(k => k + '\u00d7' + counts[k])
       .join(' ');
-    log('图片 ' + imgs.length + ' 张：' + summary + '，未加载 ' + broken);
+    log('图片 ' + imgs.length + ' 张：' + summary + '，未加载 ' + broken +
+        '，在文档里 ' + imgs.filter(i => document.contains(i)).length);
+    // 逐张打前 8 张：src 前缀、是否加载完、是否还在文档里。
+    // 全部 naturalWidth=0 且 inDoc=false 就说明容器已经脱离文档（图根本不会开始加载）。
+    imgs.slice(0, 8).forEach((img, i) => {
+      log('#' + i + ' ' + (img.getAttribute('src') || '').slice(0, 56) +
+          ' | nw=' + img.naturalWidth + ' complete=' + img.complete +
+          ' inDoc=' + document.contains(img));
+    });
     if (broken) {
       // 带一张坏图的关键属性：dns=true 表示 TB 的救援会直接 return，
       // 有 loading-internal 则说明之前试过并失败了（之后不再重试）。
