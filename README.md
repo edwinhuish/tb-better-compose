@@ -282,6 +282,33 @@ compose API 又只有 `onAfterSave`、没有「保存之前」的事件。
 初始化失败时 TinyMCE 不派发 `init`，所以另有 8 秒看门狗 + 横幅，把失败原因写在界面上，
 而不是永远挂着「加载中」。
 
+### 引用原文里的图片：`data:` 不能再被编码一次
+
+「转发 / 回复时本来能看的图，工具栏一出来就全裂」是这条时序最容易踩的坑，而且原因不在 TB：
+
+1. 引用正文里的内联图，TB 先写成 `imap://…?part=1.2`（本地库是 `mailbox://…`），再靠
+   `MsgComposeCommands.js` 里挂在编辑器文档上的 `error` 监听同步读成 `data:` 才显示得出来。
+   它生成的写法是 `data:image/jpeg;filename=x.jpg;base64,/9j/4AAQ…` —— 比标准 data URI
+   多一段 `;filename=`。
+2. TinyMCE 的 `EditorUpload` 会把正文里的 `data:` 图扫一遍：建 blob → 交给
+   `images_upload_handler`「上传」→ 再把返回的 data: URL 写回 `src`。标准写法能原样回来；
+   带 `;filename=` 的那种会被它**再编码一次**，变成
+   `data:image/jpeg;base64,LzlqLzRBQVFTa1pKUmdB…`（即 `base64(base64 文本)`）。
+   浏览器只解一次，拿到的是 ASCII 文本而不是 JPEG 字节：`complete=true` 而
+   `naturalWidth=0`，就是裂图。
+3. 这一轮扫描发生在 `init` **之前**。所以 `addFilter(() => false)` 必须挂在 `PreInit`
+   （`stopImageUploads`）；挂到 `init` 已经晚了，救不回来。
+
+另有两道兜底：`restoreBlobImages()` 把漏网的 `blob:` 还原成 `data:`；
+`retryBrokenQuotedImages()` 在 init 之后对仍然是 `imap:`/`mailbox:` 且没加载成功的图
+做一次克隆替换（同一个 `src` 重新发起请求，让 TB 的 `error` 救援有机会跑）。
+
+**不属于这条、扩展也不该管的**（接管前就是坏的）：
+
+- `cid:…` 没被换成 `imap:`：撰写文档里没有 `cid:` 协议，TB 的救援对 `cid:` 直接返回；
+- `src` 连 scheme 都没有的相对路径：在 `about:blank?compose` 里解析不出目标；
+- 部件读成了 `data:` 但载荷本身解不出来（个别 gif）：原邮件那条 part 就是坏的。
+
 ---
 
 ## 7. 段落格式与配置
@@ -667,6 +694,9 @@ pnpm run build     # → dist/better-compose-<version>.xpi
 11. **格式刷**：选带格式的字 → 点格式刷（按钮变亮）→ 选中另一段松开即套用 → 再选第三段继续刷
     → `Esc` 退出。
 12. **图片**：插入 → 图片 → 上传，选一张本地图。
+    **转发 / 回复一封带内联图的邮件**：工具栏出来之后，原本能看见的图必须还在（第 6 节
+    「引用原文里的图片」）。裂了就看「图片状态怎么读」——`dbl=1` 是本扩展的锅，
+    `cid:` 那类不归我们管。
 13. **确认是 inline**：控制台 `document.querySelectorAll('iframe').length` 应为 `0`。
 14. **存草稿**：写点东西按 `Ctrl+S`，再打开那封草稿看源码。正文里应该**只有你写的内容**——
     没有 `tox-` 开头的 class、没有工具栏的 SVG、没有 `.tox-tinymce-aux`。
@@ -695,15 +725,33 @@ pnpm run build     # → dist/better-compose-<version>.xpi
     应一次变成：`h2` 标题 + 三项列表（第二项带删除线）+ 带边框表格（单价列右对齐）。
     再粘一段普通文字，必须原样进来；粘错了按一次 `Ctrl+Z` 退回粘贴之前。
 
-确认图片真的走了 TB 通路，发送前在撰写窗口控制台跑：
+确认图片真的走了 TB 通路：把信发给自己，收件箱源码里应出现
+`Content-Type: multipart/related` 与 `Content-ID: <…>`，正文里是 `cid:…`
+（`moz-do-not-send="false"` 就是「作为 MIME 部件发出」）。
 
-```js
-window.__tcs.info()
-// { version: '7.9.3', images: [{ src: 'data:image/png;base64,…', dns: 'false' }] }
+### 图片状态怎么读
+
+撰写窗口里没有开发者工具菜单，`window.__tcs` 又落在扩展 compose script 的沙箱里 ——
+多进程浏览器工具箱是 chrome 上下文，**在那儿拿 `__tcs` 只会得到 ReferenceError**。
+要看图片状态，走「诊断日志」：
+
+1. 选项页打开「诊断日志」，重载扩展，**新开**一个撰写窗口；
+2. 错误控制台（主窗口 `Ctrl+Shift+J`）里读 `[BetterCompose]` 开头的行：
+
+```
+[BetterCompose] [接管前] 图片 17 张，未加载 15
+[BetterCompose] [接管前] #0 data:image/jpeg;filename=…;base64,/9j/4AAQSk | nw=634 complete=true dbl=0 inDoc=true
+[BetterCompose] 图片 17 张：cid×9 data×4 relative×4，未加载 15，在文档里 17
 ```
 
-`dns: "false"` 就是「作为 MIME 部件发出」。把信发给自己，收件箱源码里应出现
-`Content-Type: multipart/related` 与 `Content-ID: <…>`，正文里是 `cid:…`。
+判读：
+
+- `nw` 是 `naturalWidth`：大于 0 就是好的；`complete=true` 而 `nw=0` = 加载完了但**解码失败**；
+- `dbl=1` = 这串 `data:` 被编码了两次（本扩展的问题，见第 6 节）；
+- `[接管前]`（TinyMCE 之前）与 `[接管后]` 的 `src` 应该**一模一样**，不一样就是接管那一步动了图；
+- `inDoc=false` = 容器已经脱离文档，图根本不会开始加载。
+
+有坏图时窗口顶部还会挂一条红条（同一条信息，点一下可关；发送与存草稿前会被剥掉）。
 
 ---
 
