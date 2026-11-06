@@ -256,6 +256,7 @@ let __tcsSay = null;
   // 免得我们插的节点被那次 body.innerHTML 冲掉。
   await waitForBodyQuiet();
   cleanStale();
+  if (cfg.debug) snapshotImages('接管前');
 
   // ── 搭壳：一行工具栏 + 正文容器 ───────────────────────────────────────────
   const toolbarEl = document.createElement('div');
@@ -473,6 +474,41 @@ let __tcsSay = null;
     if (n) log('引用原文的图片重试加载', n, '张');
   }
 
+  // data: 的载荷再解一次 base64，如果得到的还是"图片的 base64 文本"（JPEG 的 /9j/、
+  // PNG 的 iVBORw0KGgo、GIF 的 R0lGOD…），说明这串 data: 被编码了两次：浏览器只解
+  // 一次，拿到的是 ASCII 文本而不是图像字节，必然 complete=true 而 naturalWidth=0。
+  function isDoubleEncoded(src) {
+    const m = /^data:[^;,]+;base64,([A-Za-z0-9+/=]+)/i.exec(src);
+    if (!m || m[1].length < 8) return false;
+    let head = '';
+    try {
+      head = atob(m[1].slice(0, Math.min(48, m[1].length - (m[1].length % 4))));
+    } catch (e) {
+      return false;
+    }
+    return /^(\/9j\/|R0lGOD|iVBORw0KGgo|UklGR|Qk[0-9A-Za-z+]{2})/.test(head);
+  }
+
+  // 诊断（选项页「诊断日志」）：在 TinyMCE 接管之前拍一张图片快照，
+  // 用来对照"src 到底是被谁改的"。
+  function snapshotImages(label) {
+    if (!document.body) return;
+    const imgs = Array.from(document.body.querySelectorAll('img'));
+    if (!imgs.length) {
+      log('[' + label + '] 没有图片');
+      return;
+    }
+    log('[' + label + '] 图片 ' + imgs.length + ' 张，未加载 ' +
+        imgs.filter(i => !i.naturalWidth).length);
+    imgs.slice(0, 8).forEach((img, i) => {
+      const src = img.getAttribute('src') || '';
+      log('[' + label + '] #' + i + ' ' + src.slice(0, 56) +
+          ' | nw=' + img.naturalWidth + ' complete=' + img.complete +
+          ' dbl=' + (isDoubleEncoded(src) ? 1 : 0) +
+          ' inDoc=' + document.contains(img));
+    });
+  }
+
   // 诊断（选项页「诊断日志」）：把正文图片的状态写到窗口顶部。
   // 撰写窗口没有开发者工具菜单，compose script 又跑在独立沙箱里（工具里拿不到
   // __tcs），所以"图到底为什么裂"这件事得有一条不依赖控制台的出口。
@@ -501,8 +537,10 @@ let __tcsSay = null;
     // 逐张打前 8 张：src 前缀、是否加载完、是否还在文档里。
     // 全部 naturalWidth=0 且 inDoc=false 就说明容器已经脱离文档（图根本不会开始加载）。
     imgs.slice(0, 8).forEach((img, i) => {
-      log('#' + i + ' ' + (img.getAttribute('src') || '').slice(0, 56) +
+      const src = img.getAttribute('src') || '';
+      log('#' + i + ' ' + src.slice(0, 56) +
           ' | nw=' + img.naturalWidth + ' complete=' + img.complete +
+          ' dbl=' + (isDoubleEncoded(src) ? 1 : 0) +
           ' inDoc=' + document.contains(img));
     });
     if (broken) {
