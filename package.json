@@ -1,6 +1,6 @@
 {
   "name": "better-compose",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Thunderbird 撰写窗口的所见即所得编辑器。TinyMCE 之外零依赖：校验、单测、打包全用 node 内置模块",
   "license": "MIT",
