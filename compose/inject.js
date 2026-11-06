@@ -430,17 +430,13 @@ let __tcsSay = null;
     root.querySelectorAll('img').forEach(markImage);
   }
 
-  // TinyMCE 的 EditorUpload 在每次 SetContent 之后会把正文里的 data: 图片换成
-  // blob: URL 来显示（scanForImages → blobCache），只有它自己的 getContent()
-  // 才还原成 data:。但撰写窗口的正文文档是 about:blank?compose（null principal）：
-  //   · 转发/回复里引用原邮件的内联图（imap:/mailbox:）是 TB 用
-  //     ComposeUtils.loadBlockedImage() 同步读成 data: 才显示得出来的
-  //     （MsgComposeCommands.js 的 error 监听），一被换成 blob: 就加载失败，成裂图；
-  //   · TB 自己的两条链路也不认 blob:：error 救援里
-  //     messageServiceFromURI('blob:') 会抛错，发送时 _gatherEmbeddedAttachments
-  //     也只收 http(s)/data:。
-  // 所以 addFilter 让扫描器直接跳过所有图片（干脆不生成 blob），再兜底把已经被
-  // 换过的按 blobCache 还原成 data:（初始内容在 init 之前就已经被扫过一遍）。
+  // 兜底：TinyMCE 的 EditorUpload 在 SetContent 之后会把 data: 图换成 blob: URL
+  // 来显示（scanForImages → blobCache），只有它自己的 getContent() 才还原成 data:。
+  // 正文文档是 about:blank?compose（null principal），blob: 未必加载得出来；更重要的是
+  // TB 的整条图片链路只认 data:/http(s)：error 救援里 messageServiceFromURI('blob:')
+  // 会抛错，发送时 _gatherEmbeddedAttachments 也只收 http(s)/data:。
+  // 所以一旦发现 src 已经是 blob:，就按 blobCache 还原回去（正常情况下
+  // stopImageUploads 已经拦在扫描之前，这里只是兜底）。
   function restoreBlobImages(ed) {
     const upload = ed && ed.editorUpload;
     if (!upload) return;
@@ -449,6 +445,21 @@ let __tcsSay = null;
       if (!info) return;
       img.setAttribute('src', 'data:' + info.blob().type + ';base64,' + info.base64());
     });
+  }
+
+  // TinyMCE 的 EditorUpload 会把正文里的 data: 图片扫一遍：建 blob → 交给
+  // images_upload_handler "上传" → 再把 handler 返回的 data: URL 写回 src。
+  // 单看这一步无害（data:image/jpeg;base64,xxx 会原样回来），但 TB 生成的写法是
+  //   data:image/jpeg;filename=Catch892B.jpg;base64,/9j/4AAQ…
+  // 多一个 ;filename= 段；TinyMCE 解析这种写法时会把这串 base64 当成"待编码的数据"
+  // 又编码一次，写回成
+  //   data:image/jpeg;base64,LzlqLzRBQVFTa1pKUmdB…     ← base64(base64 文本)
+  // 浏览器只解一次，拿到的是 ASCII 文本而不是 JPEG 字节：complete=true、
+  // naturalWidth=0 —— 这就是转发/回复里"原本能看的图，工具栏一出来就全裂"。
+  // 实测三拍（init 前 / init 后 / 900ms 后）：过滤器挂 PreInit 时 src 原样保留；
+  // 挂在 init 上则那一轮扫描已经跑完，救不回来。所以直接禁止扫描。
+  function stopImageUploads(ed) {
+    if (ed && ed.editorUpload) ed.editorUpload.addFilter(() => false);
   }
 
   // TB 的救援只发生在"图片加载失败的那一刻"：error 事件 → 同步读部件 → 换成 data:
@@ -1480,6 +1491,11 @@ let __tcsSay = null;
       patchColorPicker(ed);
       registerMarkdownPaste(ed);
 
+      // 必须挂在 PreInit：TinyMCE 在 init 之前就会把正文里的 data: 图片过一遍
+      // EditorUpload（扫描 → 换 blob: → 走 images_upload_handler 上传 → 写回 src）。
+      // 挂到 init 已经晚了，那一轮早就跑完。见 stopImageUploads 的注释。
+      ed.on('PreInit', () => stopImageUploads(ed));
+
       ed.on('init', () => {
         window.__tcsReady = true;
         clearTimeout(watchdog);
@@ -1500,8 +1516,7 @@ let __tcsSay = null;
           muts.forEach(m => m.addedNodes.forEach(markUI));
         }).observe(document.body, { childList: true });
 
-        // 见 restoreBlobImages 的注释：别再让 TinyMCE 把 data: 图变成 blob:
-        ed.editorUpload.addFilter(() => false);
+        stopImageUploads(ed);
         restoreBlobImages(ed);
         markAllImages(ed.getBody());
         // 工具栏渲染完了：整棵子树立刻搬进 shadow root，别再等 —— 用户这一秒
