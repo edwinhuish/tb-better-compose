@@ -450,6 +450,35 @@ let __tcsSay = null;
     });
   }
 
+  // 诊断（选项页「诊断日志」）：把正文图片的状态写到窗口顶部。
+  // 撰写窗口没有开发者工具菜单，compose script 又跑在独立沙箱里（工具里拿不到
+  // __tcs），所以"图到底为什么裂"这件事得有一条不依赖控制台的出口。
+  // 只在有图没加载成功时才占用界面；点到就关，且发送/存草稿前会被 cleanContent
+  // 与 prepareForSend 剥掉。
+  function reportImages(ed) {
+    const imgs = Array.from(ed.getBody().querySelectorAll('img'));
+    if (!imgs.length) {
+      log('正文里没有图片');
+      return;
+    }
+    const counts = {};
+    let broken = 0;
+    imgs.forEach(img => {
+      const m = /^([a-z][a-z0-9+.-]*):/i.exec(img.getAttribute('src') || '');
+      const kind = m ? m[1].toLowerCase() : 'relative';
+      counts[kind] = (counts[kind] || 0) + 1;
+      if (!img.naturalWidth) broken++;
+    });
+    const summary = Object.keys(counts)
+      .sort()
+      .map(k => k + '\u00d7' + counts[k])
+      .join(' ');
+    log('图片 ' + imgs.length + ' 张：' + summary + '，未加载 ' + broken);
+    if (broken) {
+      banner('imgs ' + imgs.length + ': ' + summary + ' | not loaded: ' + broken, '#c62828');
+    }
+  }
+
   // ── 格式刷 ───────────────────────────────────────────────────────────────
   // 语义照 Word：点一下取样 → 选中目标就套用 → 保持激活可以连续刷 → 再点按钮或 Esc 退出。
   // 之前的实现刷完一次就自动结束，用户往往以为“只生效了一半”或者“根本没反应”。
@@ -1404,6 +1433,9 @@ let __tcsSay = null;
           markAllImages(ed.getBody());
           sync();
         });
+
+        // 图在 init 之后才陆续加载完，稍等一会儿再看状态
+        if (cfg.debug) setTimeout(() => reportImages(ed), 600);
 
         // 字体 / 字号按钮显示当前值：选区一动、内容一改就得跟上。
         // NodeChange 触发很密（每次方向键都算），所以压一层 debounce ——
