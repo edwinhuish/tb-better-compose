@@ -67,6 +67,31 @@
 `<span style="font-family:宋体">` 没走过我们的 formatter，但计算样式一定有。字体只比第一段族名
 （声明里带一长串 fallback），字号把 px 折回 pt（正文 14px = 10.5pt）。
 
+#### 字号隔离：工具栏与正文各管一边
+
+两份样式表都注进**同一个文档**，这是「调字号时两边互相牵连」的温床：
+
+| 样式表 | 怎么进来 | 作用范围 |
+|---|---|---|
+| `content_style`（`inject.js` 的 `CONTENT_RULES`） | TinyMCE `dom.addStyle` 拼进撰写窗口 `<head>` | **整个文档** |
+| `shell.css` | composeScripts 注入；init 后整份 adopted 进 `#tcs-toolbar` 的 shadow root | 文档级 + 工具栏 shadow |
+
+所以两边都不写字面量选择器：
+
+- 正文规则一律由 `#tcs-content` 前缀拼出来（数组里只能写相对选择器：`' table'`、`':empty::before'`），
+  写 `'body'` 会变成 `#tcs-contentbody` —— 结构上就做不出全局规则；
+- `shell.css` 只允许工具栏选择器（弹出层 `.tox-tinymce-aux` / `.tox-silver-sink` / `.tox-sv-palette…`
+  是例外），且**不声明 `font-size` / `font-family` / `font` 简写**：工具栏的字号归皮肤
+  （`.tox` 16px、`.tox-tbtn` 14px），正文的归 `CONTENT_RULES` 的根规则（`font:14px/1.65`）。
+  `font-weight` 放行（菜单按钮加粗是工具栏自己的观感）。
+
+两条都不靠人记得：`tools/check-static.mjs` 第 12 节按同一规则断言，并额外钉住
+`selector: '#tcs-content'` + `fixed_toolbar_container: '#tcs-toolbar'`（两者必须是兄弟，
+工具栏一旦被渲染进正文子树，正文的整套规则就会盖到工具栏上，前缀再严也拦不住）。
+
+效果：在工具栏里选 18pt，只有正文出现 `<span style="font-size:18pt">`，按钮标签的字号不变；
+改工具栏外壳的样式也不会碰到正文的 14px / 1.65 行高。
+
 ### 对齐为什么平铺
 
 对齐是高频且互斥的动作，多一层「对齐 ▾」下拉等于每次多一次点击，且下拉按钮上只有一个「对齐」，
@@ -465,8 +490,8 @@ node_modules/          依赖，装完保留（pnpm 的软链布局，真实文�
 tools/
   extract-tinymce.mjs    提取（也是清单的定义处）：要哪些文件、各自从 node_modules 哪里来
   list-tinymce-files.mjs 只读视图：打印上面那份清单
-  check-static.mjs       静态校验 11 节（插件、按钮、命令名、图标名、零外链、装配顺序、
-                         发布形态、版本号、直角、许可）
+  check-static.mjs       静态校验 12 节（插件、按钮、命令名、图标名、零外链、装配顺序、
+                         发布形态、版本号、直角、许可、字号隔离）
   check-i18n.mjs         文案一致性（键集合、占位符、代码引用键、语言清单）
   test-markdown.mjs      解析器断言（32 条）
   test-config.mjs        配置校验断言（31 条）
@@ -628,6 +653,8 @@ pnpm run build     # → dist/better-compose-<version>.xpi
    点「格式 → 文字颜色 → 红」，选中文字立刻变红。**菜单只露一条就是又被裁切了。**
 4. **字体 / 字号**：选中一段 → 宋体、18pt，正文变样且**两个按钮上的文字跟着变**；
    光标移回默认段落，回到「系统默认」「10.5pt」。
+   判据之一是**工具栏自身的字号不变**（标签仍是皮肤给的 14px，只有标签文字内容在换）：
+   字号只作用于正文，工具栏外壳和正文的 14px/1.65 各行其道，见第 1 节的「字号隔离」。
 5. **颜色**：点「字体颜色」右侧箭头 → 22 格色板（浅底/标准/深底/灰阶/黑白五行），选「红」立刻变红；
    「背景颜色」→ 黄，出现黄底。主键（图标）点一下套用上次用过的颜色。
    色板最下「自定义颜色」→ 选色器左侧面板**必须有颜色**，拖色相条时底色要跟着变。

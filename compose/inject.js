@@ -1173,6 +1173,43 @@ let __tcsSay = null;
     if (host.firstChild) tryMount();
   }
 
+  // ── 正文样式：每条规则的来源选择器都由 #tcs-content 前缀兜底 ───────────────
+  // content_style 不是「编辑器内部样式表」：TinyMCE 把编辑器上所有 contentStyles
+  // 拼成一段 CSS，用 dom.addStyle 塞进**撰写窗口文档的 head**，对整个文档生效。
+  // 而工具栏（#tcs-toolbar）与正文在同一个文档里 —— 选择器写宽一格（body / * /
+  // div），正文的字号就会连工具栏一起改；反过来，正文基准字号被写成全局规则时，
+  // 工具栏按钮上的字也会跟着变。这类"两边互相影响"在真机上只会表现成
+  // 「调了字号，工具栏/正文莫名变了」，很难从现象反推回这条规则。
+  //
+  // 所以这里**不写字面量选择器**：数组里每一格只能是相对选择器 —— 后代（' table'）
+  // 或伪类（':empty::before'），空串表示根元素本身；前缀由 CONTENT_SCOPE 统一拼。
+  // 想加全局规则在结构上就做不到：'body' 会拼成 '#tcs-contentbody'（等于没写），
+  // 而不是去改整个窗口。tools/check-static.mjs 第 12 节按同一规则做静态断言。
+  //
+  // 字号归属（改之前先看这里）：
+  //   · 正文基准字号 = 下面根规则里的 font:14px/1.65，只此一处；
+  //   · 工具栏/按钮的字号 = TinyMCE 皮肤（.tox 16px、.tox-tbtn 14px），
+  //     shell.css 一行 font 都不声明。
+  // 两条链互不相干，所以「在工具栏里选字号」只会产生正文里的行内 span，
+  // 工具栏自身的字号保持皮肤给的值。
+  const CONTENT_SCOPE = '#tcs-content';
+  const CONTENT_RULES = [
+    // 根元素：正文的基准字体、字号、行高都定在这条上。
+    ['', 'font:14px/1.65 system-ui,-apple-system,"Segoe UI","Noto Sans CJK SC",sans-serif;' +
+         'color:#1a1a1a;padding:2px 0;outline:none;'],
+    [' table', 'border-collapse:collapse;'],
+    [' td, th', 'border:1px solid #c9c9c9;padding:4px 8px;'],
+    [' img', 'max-width:100%;height:auto;'],
+    [' blockquote', 'border-left:2px solid #d0d0d0;margin:8px 0;padding-left:10px;color:#555;'],
+    [':empty::before', 'content:"";'],
+  ];
+  const contentStyle = CONTENT_RULES
+    .map(([suffixes, decl]) => suffixes
+      .split(',')
+      .map(s => CONTENT_SCOPE + s)
+      .join(',') + '{' + decl + '}')
+    .join('');
+
   // ── 初始化 ───────────────────────────────────────────────────────────────
   registerPlugins();
   // 配置在搭壳之前就读完了（见上面「配置：必须在搭壳之前定下来」）。
@@ -1306,13 +1343,7 @@ let __tcsSay = null;
     paste_data_images: true,
     image_advtab: false,
 
-    content_style:
-      '#tcs-content{font:14px/1.65 system-ui,-apple-system,"Segoe UI","Noto Sans CJK SC",sans-serif;' +
-      'color:#1a1a1a;padding:2px 0;}' +
-      '#tcs-content table{border-collapse:collapse;}' +
-      '#tcs-content td,#tcs-content th{border:1px solid #c9c9c9;padding:4px 8px;}' +
-      '#tcs-content img{max-width:100%;height:auto;}' +
-      '#tcs-content blockquote{border-left:2px solid #d0d0d0;margin:8px 0;padding-left:10px;color:#555;}',
+    content_style: contentStyle,
 
     setup(ed) {
       registerMenus(ed);

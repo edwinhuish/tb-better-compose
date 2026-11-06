@@ -393,5 +393,92 @@ if (!existsSync(join(ROOT, TINYMCE_DIR, 'license.md'))) {
   console.log('   license:', join(TINYMCE_DIR, 'license.md').replace('dist/unpacked/', ''));
 }
 
+// ── 12. 字号隔离：工具栏与正文互不影响 ─────────────────────────────────────
+// 这一节的起因是个真实现象：调字号时工具栏和正文会"互相牵连"。根子在于两份
+// 样式表都注进了**同一个文档**：
+//   · content_style 被 TinyMCE 用 dom.addStyle 拼进撰写窗口文档的 <head>，
+//     是全文档生效的，选择器写宽一格就打到工具栏上；
+//   · shell.css 也由 composeScripts 注进文档，init 之后还整份 adopted 进
+//     #tcs-toolbar 的 shadow root —— 一条不带 #tcs-toolbar 前缀的规则就是文档级。
+// 而这两件事在真机上只表现成「点了字号，别处的字也变了」，反推不回来。
+// 所以这里把隔离做成**结构约束**，而不是靠人记得：
+//   A. 正文每条规则的来源选择器必须由 CONTENT_SCOPE 前缀拼出来（写不成全局）；
+//   B. shell.css 只许写工具栏选择器，且不许碰字号（字号归皮肤与 content_style）。
+// 另外钉住"工具栏是正文的兄弟而不是子节点"：一旦 TinyMCE 把工具栏渲染进
+// #tcs-content，正文的字号/表格样式就会整套作用到工具栏上（这时 A、B 都拦不住）。
+section('[12] 字号隔离');
+const rulesAt = inject.indexOf('const CONTENT_RULES');
+const styleAt = inject.indexOf('const contentStyle');
+const rulesBlock = rulesAt >= 0 && styleAt > rulesAt ? inject.slice(rulesAt, styleAt) : '';
+if (!rulesBlock) {
+  fail('inject.js 里找不到 CONTENT_RULES（正文样式必须走统一前缀构造）');
+} else {
+  if (!/content_style:\s*contentStyle\b/.test(inject)) {
+    fail('content_style 必须引用 CONTENT_RULES 拼出的 contentStyle，不能写内联字面量');
+  }
+  if (!/\.map\(s => CONTENT_SCOPE \+ s\)/.test(inject)) {
+    fail('CONTENT_RULES 的每条选择器都必须拼上 CONTENT_SCOPE 前缀');
+  }
+  const suffixes = [...rulesBlock.matchAll(/\['([^']*)',/g)].map(m => m[1]);
+  if (!suffixes.length) fail('CONTENT_RULES 里一条规则都没解析出来（格式变了？）');
+  for (const raw of suffixes) {
+    for (const part of raw.split(',')) {
+      if (!part) continue;                       // '' = 根元素本身
+      // 后代（' table'）与伪类（':empty::before'）是唯一允许的两种相对形式。
+      // 少了前导空格，'body' 会拼成 '#tcs-contentbody' —— 静默失效而不是变全局，
+      // 但这种"看起来生效、实际没写"的规则同样该在提交前被拦住。
+      if (!/^[\s:]/.test(part)) {
+        fail(`CONTENT_RULES 的选择器要写成相对形式（前导空格或伪类）: ${part}`);
+      }
+      if (/[#}{]/.test(part)) {
+        fail(`CONTENT_RULES 的选择器里不能出现 # / { / }（会破坏前缀作用域）: ${part}`);
+      }
+    }
+  }
+  // 正文基准字号只此一处：工具栏那一侧的字号来自皮肤，两边不共用一份声明。
+  if (!/font:\s*\d+(?:\.\d+)?px\/[\d.]+/.test(rulesBlock)) {
+    fail('正文基准字号应写在 CONTENT_RULES 的根规则上（font:14px/1.65 …）');
+  }
+  if (/#tcs-toolbar/.test(rulesBlock)) fail('CONTENT_RULES 里不许出现 #tcs-toolbar');
+  console.log('   正文规则:', suffixes.length, '条，全部由 #tcs-content 前缀兜底');
+}
+
+const cssRules = read('compose/shell.css').replace(/\/\*[\s\S]*?\*\//g, '');
+const cssSelectors = [];
+for (const m of cssRules.matchAll(/(?:^|[}{;])\s*([^{}@;]+?)\s*\{/g)) {
+  cssSelectors.push(...m[1].split(',').map(s => s.trim()).filter(Boolean));
+}
+// 弹出层挂在工具栏子树里、语义上却是文档级浮层，只能单独放行。
+const SEL_ALLOW = [
+  /^#tcs-toolbar\b/,
+  /^\.tox-tinymce-aux$/,
+  /^\.tox-silver-sink$/,
+  /^\.tox-sv-palette\b/,
+];
+for (const s of cssSelectors) {
+  if (!SEL_ALLOW.some(re => re.test(s))) {
+    fail('shell.css 的选择器必须限定在工具栏内（否则会波及正文）: ' + s);
+  }
+}
+// font-weight 放行：菜单按钮加粗是工具栏自己的观感（且限定在 #tcs-toolbar 内）。
+// 字号与字族不放行 —— 那两条才是"谁在管字号"的来源。
+if (/\bfont\s*:/.test(cssRules)) {
+  fail('shell.css 不许用 font 简写：它会把字号/字族一起钉住，与皮肤、content_style 三方打架');
+}
+if (/\bfont-(?:size|family)\s*:/.test(cssRules)) {
+  fail('shell.css 不许声明 font-size / font-family：工具栏字号归皮肤，正文字号归 content_style');
+}
+if (/\bline-height\s*:/.test(cssRules)) {
+  fail('shell.css 不许声明 line-height：理由同上');
+}
+if (/#tcs-content\b/.test(cssRules)) {
+  fail('shell.css 不许出现 #tcs-content：正文规则一律归 content_style');
+}
+if (!/selector:\s*'#tcs-content'/.test(inject) ||
+    !/fixed_toolbar_container:\s*'#tcs-toolbar'/.test(inject)) {
+  fail('编辑器根必须是 #tcs-content、工具栏必须是 #tcs-toolbar（两者是兄弟，不是父子）');
+}
+console.log('   工具栏选择器:', cssSelectors.length, '条，全部限定在 #tcs-toolbar 内，且不声明字号');
+
 console.log('\n' + (ok ? '全部通过' : '有失败项'));
 process.exit(ok ? 0 : 1);

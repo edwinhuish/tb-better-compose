@@ -4,6 +4,20 @@
  *   1. 工具栏永远一行（TinyMCE 自己的 flex-wrap 要压住）
  *   2. 左侧那组折叠菜单在视觉上独立成组
  *   3. 弹出层（菜单/对话框）不被撰写窗口的 overflow 裁掉
+ *
+ * ⚠️ 作用域契约：这个文件只写**工具栏**。TB 把这份 CSS 注进撰写窗口文档，
+ * init 之后又会整份 adopted 进 #tcs-toolbar 的 shadow root（#tcs-toolbar 在
+ * 那里被替换成 :host），所以：
+ *   · 每条选择器都必须以 #tcs-toolbar 打头，唯一的例外是弹出层
+ *     （.tox-tinymce-aux / .tox-silver-sink / .tox-sv-palette…）：它们物理上
+ *     挂在工具栏子树里，但语义上是文档级的浮层；
+ *   · 不声明任何 font / font-size / line-height。工具栏的字号由 TinyMCE 皮肤
+ *     决定（.tox 16px、.tox-tbtn 14px），正文的字号由 inject.js 的
+ *     CONTENT_RULES（content_style）决定 —— 两条链各管一边，谁也别改对方。
+ *     一旦在这里写字号，就成了「项目自己也在管工具栏字号」，和皮肤、和正文
+ *     的继承都会打架。
+ *   · 不写 #tcs-content：正文规则一律归 content_style（那边才有前缀兜底）。
+ * 三条都由 tools/check-static.mjs 第 12 节断言。
  */
 
 #tcs-toolbar {
@@ -190,15 +204,6 @@
 .tox-tinymce-aux,
 .tox-silver-sink {
   z-index: 2147483000 !important;
-}
-
-/* 正文区域：邮件观感，而不是编辑器观感 */
-#tcs-content {
-  outline: none;
-}
-
-#tcs-content:empty::before {
-  content: "";
 }
 
 @media (prefers-color-scheme: dark) {
