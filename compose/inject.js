@@ -429,6 +429,27 @@ let __tcsSay = null;
     root.querySelectorAll('img').forEach(markImage);
   }
 
+  // TinyMCE 的 EditorUpload 在每次 SetContent 之后会把正文里的 data: 图片换成
+  // blob: URL 来显示（scanForImages → blobCache），只有它自己的 getContent()
+  // 才还原成 data:。但撰写窗口的正文文档是 about:blank?compose（null principal）：
+  //   · 转发/回复里引用原邮件的内联图（imap:/mailbox:）是 TB 用
+  //     ComposeUtils.loadBlockedImage() 同步读成 data: 才显示得出来的
+  //     （MsgComposeCommands.js 的 error 监听），一被换成 blob: 就加载失败，成裂图；
+  //   · TB 自己的两条链路也不认 blob:：error 救援里
+  //     messageServiceFromURI('blob:') 会抛错，发送时 _gatherEmbeddedAttachments
+  //     也只收 http(s)/data:。
+  // 所以 addFilter 让扫描器直接跳过所有图片（干脆不生成 blob），再兜底把已经被
+  // 换过的按 blobCache 还原成 data:（初始内容在 init 之前就已经被扫过一遍）。
+  function restoreBlobImages(ed) {
+    const upload = ed && ed.editorUpload;
+    if (!upload) return;
+    ed.getBody().querySelectorAll('img[src^="blob:"]').forEach(img => {
+      const info = upload.blobCache.getByUri(img.getAttribute('src'));
+      if (!info) return;
+      img.setAttribute('src', 'data:' + info.blob().type + ';base64,' + info.base64());
+    });
+  }
+
   // ── 格式刷 ───────────────────────────────────────────────────────────────
   // 语义照 Word：点一下取样 → 选中目标就套用 → 保持激活可以连续刷 → 再点按钮或 Esc 退出。
   // 之前的实现刷完一次就自动结束，用户往往以为“只生效了一半”或者“根本没反应”。
@@ -1371,11 +1392,15 @@ let __tcsSay = null;
           muts.forEach(m => m.addedNodes.forEach(markUI));
         }).observe(document.body, { childList: true });
 
+        // 见 restoreBlobImages 的注释：别再让 TinyMCE 把 data: 图变成 blob:
+        ed.editorUpload.addFilter(() => false);
+        restoreBlobImages(ed);
         markAllImages(ed.getBody());
         // 工具栏渲染完了：整棵子树立刻搬进 shadow root，别再等 —— 用户这一秒
         // 就可能按下保存。（失败时它保持原样，功能不受影响，只是草稿里会多出 UI）
         scheduleToolbarShadow(ed);
         ed.on('input change keyup paste SetContent NodeChange', () => {
+          restoreBlobImages(ed);
           markAllImages(ed.getBody());
           sync();
         });
