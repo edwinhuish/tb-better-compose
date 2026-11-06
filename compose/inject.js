@@ -450,6 +450,29 @@ let __tcsSay = null;
     });
   }
 
+  // TB 的救援只发生在"图片加载失败的那一刻"：error 事件 → 同步读部件 → 换成 data:
+  // （MsgComposeCommands.js 里的监听）。引用正文是在 editor 创建之前就塞进文档的，
+  // 首次加载有可能早于监听器挂上，之后不会再有第二次尝试 —— 图就永远停在
+  // imap:/mailbox: 的裂图上。TinyMCE 接管时元素会重建，但重建后的加载也只那一次。
+  // 所以 init 之后对"仍然没加载成功"的引用原文图片强制重试一次：克隆替换 =
+  // 新元素 + 同一个 src，Gecko 会重新发起请求，这时 TB 的监听器一定已经在文档上。
+  const QUOTED_SRC = /^(imap|mailbox|news|nntp|jsaccount|file):/i;
+
+  function retryBrokenQuotedImages(ed) {
+    const body = ed && ed.getBody();
+    if (!body) return;
+    let n = 0;
+    body.querySelectorAll('img').forEach(img => {
+      if (img.naturalWidth) return;
+      if (!QUOTED_SRC.test(img.getAttribute('src') || '')) return;
+      const fresh = img.cloneNode(true);
+      if (!img.parentNode) return;
+      img.parentNode.replaceChild(fresh, img);
+      n++;
+    });
+    if (n) log('引用原文的图片重试加载', n, '张');
+  }
+
   // 诊断（选项页「诊断日志」）：把正文图片的状态写到窗口顶部。
   // 撰写窗口没有开发者工具菜单，compose script 又跑在独立沙箱里（工具里拿不到
   // __tcs），所以"图到底为什么裂"这件事得有一条不依赖控制台的出口。
@@ -475,7 +498,17 @@ let __tcsSay = null;
       .join(' ');
     log('图片 ' + imgs.length + ' 张：' + summary + '，未加载 ' + broken);
     if (broken) {
-      banner('imgs ' + imgs.length + ': ' + summary + ' | not loaded: ' + broken, '#c62828');
+      // 带一张坏图的关键属性：dns=true 表示 TB 的救援会直接 return，
+      // 有 loading-internal 则说明之前试过并失败了（之后不再重试）。
+      const first = imgs.find(i => !i.naturalWidth);
+      const detail = first
+        ? ' | ' + (first.getAttribute('moz-do-not-send') === null ? 'dns=null'
+            : 'dns=' + first.getAttribute('moz-do-not-send')) +
+          ' cls=' + (first.getAttribute('class') || '-') +
+          ' mce=' + (first.hasAttribute('data-mce-src') ? 'y' : 'n')
+        : '';
+      banner('imgs ' + imgs.length + ': ' + summary + ' | not loaded: ' + broken + detail,
+        '#c62828');
     }
   }
 
@@ -1434,8 +1467,11 @@ let __tcsSay = null;
           sync();
         });
 
-        // 图在 init 之后才陆续加载完，稍等一会儿再看状态
-        if (cfg.debug) setTimeout(() => reportImages(ed), 600);
+        // 图在 init 之后才陆续加载完：先给引用原文的图一次重试，再看状态
+        setTimeout(() => {
+          retryBrokenQuotedImages(ed);
+          if (cfg.debug) setTimeout(() => reportImages(ed), 800);
+        }, 300);
 
         // 字体 / 字号按钮显示当前值：选区一动、内容一改就得跟上。
         // NodeChange 触发很密（每次方向键都算），所以压一层 debounce ——
