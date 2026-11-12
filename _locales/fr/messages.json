@@ -338,6 +338,30 @@
   "font_more_hint": {
     "message": "ex. FangSong, ou une pile de secours complète"
   },
+  "sec_fonts": {
+    "message": "Polices"
+  },
+  "opt_fonts_hint": {
+    "message": "Thunderbird n'offre aucune API pour lister les polices installées : cette analyse teste une liste de candidates en mesurant la largeur du texte. Le résultat est enregistré aussitôt et apparaît dans le menu des polices de la fenêtre de rédaction."
+  },
+  "btn_font_scan": {
+    "message": "Analyser les polices du système"
+  },
+  "btn_font_clear": {
+    "message": "Effacer le résultat"
+  },
+  "font_scan_running": {
+    "message": "Analyse en cours…"
+  },
+  "font_scan_done": {
+    "message": "$1 polices trouvées — déjà actives dans les fenêtres de rédaction"
+  },
+  "font_scan_none": {
+    "message": "Aucune candidate trouvée — saisissez un nom via « Autre police… » dans le menu des polices"
+  },
+  "font_scan_cleared": {
+    "message": "Résultat effacé"
+  },
 
   "grp_custom": {
     "message": "Personnalisé"

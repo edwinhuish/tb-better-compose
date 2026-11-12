@@ -819,65 +819,26 @@ let __tcsSay = null;
   const SIZES = ['12pt', '14pt', '16pt', '18pt', '24pt'];
 
 
-  // ── 字体清单：为什么只有这几个，以及怎么把它做"全" ────────────────────────
-  // Gecko 里**没有**枚举系统字体的 API：
-  //   · document.fonts 只列**用 @font-face 加载过**的字，系统字体一个都不在里面；
-  //   · navigator.fonts.query()（Local Font Access）是 Chromium 的，要权限 + 用户
-  //     手势，Thunderbird 没有实现。
-  // 所以"读一遍系统字体、全部列出来"这件事在这里做不到，清单只能是我们写死的候选。
+  // ── 字体清单 ──────────────────────────────────────────────────────────────
+  // Gecko 里没有枚举系统字体的 API（原因写在 compose/fonts.js 的头部注释里），
+  // 所以候选表 + 量字宽探测都在那个文件里，撰写窗口和选项页共用同一份实现。
   //
-  // 能做的两件事，合起来才等价于"我机器上的字体都在"：
-  //   1. 候选表写全一点，再用**量字宽**把没装的筛掉（见下面的 installedFonts）——
-  //      菜单里于是只出现这台机器上真的有的字体，不会点了没反应；
-  //   2. 清单外的给一个「其他字体…」，自己填族名（思源黑体 / JetBrains Mono 都行），
-  //      所以覆盖面最终还是完整的。
+  // 菜单由三段拼成：
+  //   1. 常用（FONTS.CURATED）：不扫描也固定在这儿，现场探测；
+  //   2. 扫描结果：选项页「扫描系统字体」把它发现的名字写进 storage，这里读出来；
+  //   3. 「其他字体…」：照样留着 —— 候选表和扫描都只能证明"名单里的有没有装"。
   //
-  // 每一行的 stack 末尾**必须**是通用族（serif / sans-serif / monospace）：只用
-  // "SimSun" 这种单一名字时，收件端（macOS/mobile）没有该字就会掉回它自己的默认
-  // 字体，看起来像"字体没生效"；带上同类兜底才会按同类回退。
-  // 第三项是按钮上的短标签：工具栏显示当前值，"Times New Roman" 这种全名会把单行
-  // 工具栏撑开。新加的条目直接用族名当标签 —— 字体名是专有名词，翻成别的语言反而是
-  // 错的（ja 语言包里 SimSun 也是这么处理的）。
-  const FONT_CANDIDATES = [
-    [t('font_system'), null, t('font_system')],
-
-    [t('font_sim_sun'), 'SimSun, "Songti SC", "Noto Serif CJK SC", serif',
-     t('font_sim_sun_short')],
-    [t('font_ya_hei'), '"Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif',
-     t('font_ya_hei_short')],
-    [t('font_sim_hei'), 'SimHei, "Heiti SC", "Noto Sans CJK SC", sans-serif',
-     t('font_sim_hei_short')],
-    [t('font_kai_ti'), 'KaiTi, "Kaiti SC", "Noto Serif CJK SC", serif',
-     t('font_kai_ti_short')],
-
-    ['FangSong', 'FangSong, STFangsong, "Songti SC", serif', 'FangSong'],
-    ['PingFang SC', '"PingFang SC", "Microsoft YaHei", sans-serif', 'PingFang'],
-    ['Hiragino Sans GB', '"Hiragino Sans GB", "PingFang SC", sans-serif', 'Hiragino'],
-    ['Noto Sans CJK SC', '"Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC", sans-serif',
-     'Noto Sans'],
-    ['Noto Serif CJK SC', '"Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", serif',
-     'Noto Serif'],
-    ['WenQuanYi Micro Hei', '"WenQuanYi Micro Hei", "Noto Sans CJK SC", sans-serif', 'WQY Micro'],
-    ['DengXian', 'DengXian, "Microsoft YaHei", sans-serif', 'DengXian'],
-
-    ['Arial', 'Arial, Helvetica, sans-serif', 'Arial'],
-    ['Helvetica', 'Helvetica, Arial, sans-serif', 'Helvetica'],
-    ['Verdana', 'Verdana, Geneva, sans-serif', 'Verdana'],
-    ['Tahoma', 'Tahoma, Verdana, sans-serif', 'Tahoma'],
-    ['Trebuchet MS', '"Trebuchet MS", Tahoma, sans-serif', 'Trebuchet'],
-    ['Calibri', 'Calibri, "Segoe UI", sans-serif', 'Calibri'],
-    ['Segoe UI', '"Segoe UI", Calibri, sans-serif', 'Segoe'],
-    ['Times New Roman', '"Times New Roman", Times, serif', 'Times'],
-    ['Georgia', 'Georgia, serif', 'Georgia'],
-    ['Cambria', 'Cambria, Georgia, serif', 'Cambria'],
-    ['Garamond', 'Garamond, Georgia, serif', 'Garamond'],
-    ['Courier New', '"Courier New", Courier, monospace', 'Courier'],
-    ['Consolas', 'Consolas, "Courier New", monospace', 'Consolas'],
-    ['Menlo', 'Menlo, Consolas, monospace', 'Menlo'],
-    ['JetBrains Mono', '"JetBrains Mono", Consolas, monospace', 'JetBrains'],
-    ['DejaVu Sans', '"DejaVu Sans", Verdana, sans-serif', 'DejaVu Sans'],
-    ['Liberation Serif', '"Liberation Serif", "Times New Roman", serif', 'Liberation'],
-  ];
+  // 中文那几条另给 i18n 标签和跨平台等价字栈（宋体/微软雅黑/黑体/楷体），
+  // 其余的标签就是族名本身：字体名是专有名词，翻成别的语言反而是错的
+  // （ja 语言包里 SimSun 也是这么处理的）。
+  const FONTS = window.__tcsFonts;
+  const SCAN_KEY = 'composeStudio.fonts';        // 与 options.js 里同一个键
+  const CJK_LABELS = {
+    'simsun': [t('font_sim_sun'), t('font_sim_sun_short')],
+    'microsoft yahei': [t('font_ya_hei'), t('font_ya_hei_short')],
+    'simhei': [t('font_sim_hei'), t('font_sim_hei_short')],
+    'kaiti': [t('font_kai_ti'), t('font_kai_ti_short')],
+  };
 
   const FONT_SIZES = [
     [t('size_default'), null],
@@ -894,48 +855,21 @@ let __tcsSay = null;
   // 没设字体时计算值是 content_style 里的 system-ui 栈（或空）→ 归到「系统默认」
   const DEFAULT_FAMILIES = /^(|system-ui|-apple-system|inherit|initial|unset)$/;
 
+  // 标签：中文那四条用 i18n 的「宋体/微软雅黑…」，其余用族名本身（专有名词）。
+  const labelOf = name => {
+    const pair = CJK_LABELS[firstFamily(name)];
+    return pair ? pair[0] : name;
+  };
+
   const currentFontLabel = family => {
     const first = firstFamily(family);
     if (DEFAULT_FAMILIES.test(first)) return t('font_system');
-    const hit = FONT_CANDIDATES.find(([, value]) => value && firstFamily(value) === first);
-    return hit ? hit[2] : first;           // 清单外的字体，如实显示族名
+    const pair = CJK_LABELS[first];
+    if (pair) return pair[1];
+    // 长名字用短标签（"Times New Roman" → "Times"），清单外的如实显示原文大小写
+    const raw = String(family || '').split(',')[0].trim().replace(/^["']|["']$/g, '');
+    return (FONTS && FONTS.SHORT[first]) || raw || first;
   };
-
-  // ── 量字宽，筛出这台机器上真的装了的字体 ──────────────────────────────────
-  // 老办法，排版界用了二十年：同一串字符，用「候选族, 通用族」渲染一次、只用通用族
-  // 渲染一次，宽度不一样就说明候选族真的被用上了。三种通用族都试，任意一种不同即算装了。
-  // 测试串必须同时有中日韩字和西文：只测西文时，"装了但只带西文字形"的字体会被误判成
-  // 装了（其实中文会回退），只测中文时纯西文字体会被误判成没装。
-  const FONT_PROBE_TEXT = 'mmmmmmmmmwwwwii1WQ@# 中文字体测试 日本語';
-  const GENERIC_FAMILIES = ['monospace', 'serif', 'sans-serif'];
-  let installedFontCache = null;
-
-  function installedFonts(doc) {
-    if (installedFontCache) return installedFontCache;
-    const host = doc.body || doc.documentElement;
-    const probe = doc.createElement('span');
-    probe.textContent = FONT_PROBE_TEXT;
-    // visibility:hidden 仍然参与布局（display:none 才不参与），所以量得到宽度
-    probe.style.cssText = 'position:absolute;left:-99999px;top:0;font-size:72px;' +
-      'white-space:nowrap;visibility:hidden;';
-    host.appendChild(probe);
-    const widthOf = family => {
-      probe.style.fontFamily = family;
-      return probe.getBoundingClientRect().width;
-    };
-    const base = GENERIC_FAMILIES.map(widthOf);
-    const hit = FONT_CANDIDATES.filter(([, stack]) => {
-      if (!stack) return true;                          // 「系统默认」永远在
-      // stack 的第一段就是候选族名，可能自带引号（"Microsoft YaHei"），原样拼回去
-      const first = stack.split(',')[0].trim();
-      return GENERIC_FAMILIES.some(
-        (generic, i) => Math.abs(widthOf(first + ', ' + generic) - base[i]) > 0.5
-      );
-    });
-    probe.remove();
-    installedFontCache = hit;
-    return hit;
-  }
 
   // 应用 / 取消字体。取消那一支要带 similar=true —— 不带 vars 的 remove 对 %value
   // 格式是空操作（详见 registerToolbar 里 pick 那段注释）。
@@ -948,19 +882,75 @@ let __tcsSay = null;
     refreshValueLabels(ed);
   }
 
-  // 字体下拉：系统默认 + **真的装了的**候选 + 「其他字体…」。
-  // 候选先过探测，所以 Linux 上看不到 SimSun、Windows 上看不到 WenQuanYi，也就不会
-  // 出现"选了没反应"（没装的字 CSS 会静默回退）。清单外的靠最后那一项覆盖。
-  function fontMenuItems(ed, isCurrent) {
-    const items = installedFonts(document).map(([text, value]) => ({
-      type: 'togglemenuitem',
-      text,
-      active: isCurrent(value),
-      onAction: () => applyFont(ed, value),
-    }));
-    items.push({ type: 'separator' });
-    items.push({ type: 'menuitem', text: t('font_more'), onAction: () => askFontName(ed) });
-    return items;
+  // 常用那一小组的探测结果，窗口内缓存一次（9 条 × 3 档，二十来毫秒）
+  let curatedCache = null;
+  function curatedFonts() {
+    if (!curatedCache) {
+      curatedCache = FONTS
+        ? FONTS.detect(document, FONTS.CURATED.map(n => [n, FONTS.genericOf(n)]))
+        : [];
+    }
+    return curatedCache;
+  }
+
+  // 选项页「扫描系统字体」写进 storage 的结果。读一次、缓存；没有就返回空表。
+  // 读不到 storage 不能影响字体菜单 —— 最坏情况只是少了「扫描到的那一段」。
+  let scanCache = null;
+  function scannedFonts() {
+    if (!scanCache) {
+      scanCache = Promise.resolve()
+        .then(() => (browser.storage ? browser.storage.local.get(SCAN_KEY) : null))
+        .then(got => {
+          const names = got && got[SCAN_KEY] && got[SCAN_KEY].names;
+          return Array.isArray(names) ? names.filter(n => typeof n === 'string' && n) : [];
+        })
+        .catch(() => []);
+    }
+    return scanCache;
+  }
+
+  // 字体下拉：系统默认 + 常用（现场探测）+ 扫描结果 + 「其他字体…」。
+  // 两段都只列"本机真的装了的"，所以不会出现点了没反应（没装的字 CSS 静默回退）。
+  function fontMenuItems(ed, isCurrent, done) {
+    scannedFonts().then(scanned => {
+      const items = [{
+        type: 'togglemenuitem',
+        text: t('font_system'),
+        active: isCurrent(null),
+        onAction: () => applyFont(ed, null),
+      }];
+
+      const seen = new Set();
+      const add = name => {
+        const key = firstFamily(name);
+        if (seen.has(key)) return;
+        seen.add(key);
+        items.push({
+          type: 'togglemenuitem',
+          text: labelOf(name),
+          active: isCurrent(name),
+          onAction: () => applyFont(ed, FONTS ? FONTS.stackOf(name) : name),
+        });
+      };
+
+      const curated = curatedFonts();
+      curated.forEach(add);
+
+      // 扫描到的：去掉常用段里已经有的，按名字排序 —— 这一段可能几十条，
+      // 无序等于没法找。扫描表里没有的名字（比如用户手改过 storage）也照收，
+      // genericOf 会猜一个通用族兜底。
+      const extra = scanned
+        .filter(name => !seen.has(firstFamily(name)))
+        .sort((a, b) => a.localeCompare(b));
+      if (extra.length) {
+        items.push({ type: 'separator' });
+        extra.forEach(add);
+      }
+
+      items.push({ type: 'separator' });
+      items.push({ type: 'menuitem', text: t('font_more'), onAction: () => askFontName(ed) });
+      done(items);
+    });
   }
 
   // 清单外的字体：只能让用户自己填族名。填 `思源黑体`、`JetBrains Mono` 都行，也可以
@@ -1238,15 +1228,17 @@ let __tcsSay = null;
     // 字体 / 字体大小：折叠选择器，作用于选区；光标没选中时对“接下来输入的字”生效。
     // 初始 text 取「默认状态下的真实值」而不是占位词：TinyMCE 在渲染时按 text
     // 量出按钮的内联宽度并定死，写占位词会让后面的值被 ellipsis 截掉。
-    // 字体不走 pick：清单要在**开菜单时**按探测结果现算（谁装了什么机器不一样），
-    // 而且末尾还要挂一个「其他字体…」。详见 fontMenuItems。
+    // 字体不走 pick：清单要在**开菜单时**现算（要读 storage 里的扫描结果），
+    // 而且末尾还要挂一个「其他字体…」。fetch 的回调可以异步调用，所以 fontMenuItems
+    // 自己收下 cb。详见 fontMenuItems。
     ed.ui.registry.addMenuButton('tcs_font', {
       text: t('font_system'),
       tooltip: t('tb_font_tip'),
-      fetch: cb => cb(fontMenuItems(
+      fetch: cb => fontMenuItems(
         ed,
-        value => (value ? firstFamily(value) : none) === currentFontKey()
-      )),
+        value => (value ? firstFamily(value) : none) === currentFontKey(),
+        cb
+      ),
     });
 
     ed.ui.registry.addMenuButton('tcs_size', {

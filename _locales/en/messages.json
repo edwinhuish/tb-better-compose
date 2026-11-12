@@ -338,6 +338,30 @@
   "font_more_hint": {
     "message": "e.g. FangSong, or a full fallback stack"
   },
+  "sec_fonts": {
+    "message": "Fonts"
+  },
+  "opt_fonts_hint": {
+    "message": "Thunderbird gives no API to list installed fonts, so this checks a built-in candidate list by measuring text widths. Results are saved immediately and appear in the compose window font menu."
+  },
+  "btn_font_scan": {
+    "message": "Scan system fonts"
+  },
+  "btn_font_clear": {
+    "message": "Clear results"
+  },
+  "font_scan_running": {
+    "message": "Scanning…"
+  },
+  "font_scan_done": {
+    "message": "Found $1 fonts — already active in compose windows"
+  },
+  "font_scan_none": {
+    "message": "No candidate fonts found — type a name via “Other font…” in the font menu"
+  },
+  "font_scan_cleared": {
+    "message": "Scan results cleared"
+  },
 
   "grp_custom": {
     "message": "Custom"

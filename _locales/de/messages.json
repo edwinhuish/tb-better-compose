@@ -338,6 +338,30 @@
   "font_more_hint": {
     "message": "z. B. FangSong oder eine ganze Fallback-Liste"
   },
+  "sec_fonts": {
+    "message": "Schriftarten"
+  },
+  "opt_fonts_hint": {
+    "message": "Thunderbird bietet keine Schnittstelle zum Auflisten installierter Schriftarten. Dieser Scan prüft eine eingebaute Kandidatenliste über Textbreiten. Das Ergebnis wird sofort gespeichert und erscheint im Schriftmenü des Verfassen-Fensters."
+  },
+  "btn_font_scan": {
+    "message": "Systemschriftarten suchen"
+  },
+  "btn_font_clear": {
+    "message": "Ergebnis löschen"
+  },
+  "font_scan_running": {
+    "message": "Suche läuft…"
+  },
+  "font_scan_done": {
+    "message": "$1 Schriftarten gefunden — bereits in Verfassen-Fenstern aktiv"
+  },
+  "font_scan_none": {
+    "message": "Keine Kandidaten gefunden — im Schriftmenü über „Andere Schriftart…“ einen Namen eingeben"
+  },
+  "font_scan_cleared": {
+    "message": "Suchergebnis gelöscht"
+  },
 
   "grp_custom": {
     "message": "Eigene"

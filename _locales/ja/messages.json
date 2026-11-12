@@ -338,6 +338,30 @@
   "font_more_hint": {
     "message": "例: FangSong、フォールバック込みの指定も可"
   },
+  "sec_fonts": {
+    "message": "フォント"
+  },
+  "opt_fonts_hint": {
+    "message": "Thunderbird にはインストール済みフォントを列挙する API がないため、内蔵の候補リストを文字幅の測定で確認します。結果はすぐに保存され、作成ウィンドウのフォントメニューに反映されます。"
+  },
+  "btn_font_scan": {
+    "message": "システムのフォントを検索"
+  },
+  "btn_font_clear": {
+    "message": "結果を消去"
+  },
+  "font_scan_running": {
+    "message": "検索中…"
+  },
+  "font_scan_done": {
+    "message": "$1 個のフォントを検出しました（作成ウィンドウに反映済み）"
+  },
+  "font_scan_none": {
+    "message": "候補のフォントが見つかりません。「その他のフォント…」で名前を入力してください"
+  },
+  "font_scan_cleared": {
+    "message": "検索結果を消去しました"
+  },
 
   "grp_custom": {
     "message": "カスタム"

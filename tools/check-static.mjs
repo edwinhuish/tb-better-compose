@@ -618,56 +618,107 @@ section('[15] 「已修改」标记');
   console.log('   clearModified 两端齐、只带 isModified、两条护栏在位');
 }
 
-// ── 16. 字体清单 ─────────────────────────────────────────────────────────
-// Gecko 枚举不了系统字体（document.fonts 只有 @font-face 加载过的，
-// navigator.fonts 是 Chromium 的），所以清单只能是写死的候选 + 量字宽筛选 +
-// 「其他字体…」自由填。三个不变式：
-//   A. 每条候选的 font-family 串末尾必须是通用族 —— 收件端没有这个字时才按同类回退，
-//      而不是掉到它自己的默认字体上（"字体没生效"就是这么来的）；
-//   B. 字体下拉必须经过探测筛选（installedFonts），不能直接把候选表全列出来 ——
-//      没装的字点了只会静默回退，用户看到的是"选了没反应"；
-//   C. 必须留「其他字体…」入口。探测只能证明"候选里的装没装"，候选之外的字全靠它。
-section('[16] 字体清单');
+// ── 16. 字体清单与扫描 ───────────────────────────────────────────────────
+// Gecko 枚举不了系统字体（document.fonts 只有 @font-face 加载过的，navigator.fonts
+// 是 Chromium 的，真正的 nsIFontEnumerator 要 chrome 特权），所以只能"点名验证"：
+// 候选表 + 量字宽。不变式：
+//   A. 每条候选的通用族必须是 serif / sans-serif / monospace 之一 —— 写错的后果是
+//      探测拿错基准、以及收件端没有该字时不按同类回退（"字体没生效"就这么来的）；
+//   B. 常用表里的名字必须在候选表里，否则它永远只能靠 genericOf 猜通用族；
+//   C. 字体下拉必须经探测（FONTS.detect）并留「其他字体…」入口；
+//   D. 扫描结果是一个**共享的键**：选项页写、撰写窗口读，两边写错一个字符就静默失联。
+section('[16] 字体清单与扫描');
 {
-  const at = injectCode.indexOf('const FONT_CANDIDATES = [');
-  const block = at >= 0 ? injectCode.slice(at, injectCode.indexOf('];', at)) : '';
+  const fontsSrc = read('compose/fonts.js');
+  const listAt = fontsSrc.indexOf('const SCAN_LIST = [');
+  const block = listAt >= 0 ? fontsSrc.slice(listAt, fontsSrc.indexOf('];', listAt)) : '';
   if (!block) {
-    fail('inject.js 里找不到 FONT_CANDIDATES');
+    fail('compose/fonts.js 里找不到 SCAN_LIST');
   } else {
-    // 每条候选的形状是 [标签, font-family 串 | null, 短标签]，串里可能带逗号和引号，
-    // 所以按「第一个元素、第二个元素」的结构取，别去扫引号（扫引号会跨条目错配）。
-    const stacks = [...block.matchAll(/\[\s*[^,\]]+,\s*'([^']*)'\s*,/g)].map(m => m[1]);
+    const entries = [...block.matchAll(/\['([^']+)',\s*'([a-z-]+)'\]/g)];
     const generic = ['serif', 'sans-serif', 'monospace'];
+    const seenName = new Map();
     let bad = 0;
-    for (const stack of stacks) {
-      const last = stack.split(',').pop().trim();
-      if (!generic.includes(last)) {
-        fail(`候选字体 ${stack} 的 stack 没以通用族结尾（当前是 "${last}"）`);
+    for (const [, name, g] of entries) {
+      if (!generic.includes(g)) {
+        fail(`候选 ${name} 的通用族是 "${g}"，只能是 ${generic.join(' / ')}`);
         bad++;
       }
+      const key = name.toLowerCase();
+      if (seenName.has(key)) {
+        fail(`候选表里 ${name} 出现了两次（探测会白做一遍，去重签名也会互相挤掉）`);
+        bad++;
+      }
+      seenName.set(key, true);
     }
-    if (!stacks.length) fail('一条候选的 font-family 串都没解析出来（表结构变了？）');
-    else if (!bad) console.log('   ', stacks.length, '条候选的 stack 全部以通用族收尾');
+    if (!entries.length) fail('SCAN_LIST 一条都没解析出来（表结构变了？）');
+    else if (!bad) console.log('   ', entries.length, '条候选，通用族与去重都正常');
+
+    const curated = /const CURATED = \[([\s\S]*?)\];/.exec(fontsSrc);
+    if (!curated) {
+      fail('compose/fonts.js 里找不到 CURATED');
+    } else {
+      const names = [...curated[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+      for (const name of names) {
+        if (!seenName.has(name.toLowerCase())) {
+          fail(`常用表里的 ${name} 不在候选表里（只能靠 genericOf 猜通用族）`);
+        }
+      }
+      console.log('    常用', names.length, '条，全部在候选表内');
+    }
   }
+
   const menuAt = injectCode.indexOf('function fontMenuItems');
-  const menu = menuAt >= 0 ? injectCode.slice(menuAt, menuAt + 900) : '';
+  const menu = menuAt >= 0 ? injectCode.slice(menuAt, menuAt + 1400) : '';
   if (!menu) {
     fail('inject.js 里找不到 fontMenuItems');
   } else {
-    if (!menu.includes('installedFonts(')) {
-      fail('fontMenuItems 必须用 installedFonts() 筛过：没装的字点了只会静默回退');
+    if (!menu.includes('curatedFonts(')) {
+      fail('fontMenuItems 必须用 curatedFonts()（= FONTS.detect 探测）筛过：没装的字点了只会静默回退');
+    }
+    if (!menu.includes('scannedFonts(')) {
+      fail('fontMenuItems 没读扫描结果：选项页扫出来的那一堆就白扫了');
     }
     if (!/t\('font_more'\)/.test(menu)) {
       fail('fontMenuItems 少了「其他字体…」入口：候选之外的字就没路可走了');
     }
   }
+  const detectAt = injectCode.indexOf('function curatedFonts');
+  if (detectAt < 0 || !injectCode.slice(detectAt, detectAt + 400).includes('FONTS.detect(')) {
+    fail('curatedFonts 必须调 FONTS.detect（compose/fonts.js 里那一份唯一实现）');
+  }
+
   const btnAt = injectCode.indexOf("addMenuButton('tcs_font'");
-  const btn = btnAt >= 0 ? injectCode.slice(btnAt, btnAt + 400) : '';
+  const btn = btnAt >= 0 ? injectCode.slice(btnAt, btnAt + 420) : '';
   if (!btn) fail('找不到 tcs_font 的注册');
   else if (!btn.includes('fontMenuItems(')) {
-    fail('tcs_font 必须走 fontMenuItems（按探测结果现算），不能退回静态 pick 列表');
+    fail('tcs_font 必须走 fontMenuItems（按探测 + 扫描结果现算），不能退回静态 pick 列表');
   }
-  console.log('   字体下拉：探测筛选 + 通用族兜底 + 其他字体入口');
+
+  // 扫描结果这条链路：选项页写 → 撰写窗口读，键名必须一模一样
+  const optionsSrc = read('options/options.js');
+  const injectKey = /const SCAN_KEY = '([^']+)'/.exec(injectCode);
+  const optionsKey = /const SCAN_KEY = '([^']+)'/.exec(optionsSrc);
+  if (!injectKey || !optionsKey) {
+    fail('SCAN_KEY 在 inject.js 与 options/options.js 里必须各有一份（并保持一致）');
+  } else if (injectKey[1] !== optionsKey[1]) {
+    fail(`SCAN_KEY 对不上：inject.js "${injectKey[1]}" vs options.js "${optionsKey[1]}"`);
+  }
+  if (!/FONTS\.detect\(document,\s*FONTS\.SCAN_LIST\)/.test(optionsSrc)) {
+    fail('选项页的扫描必须走 FONTS.detect(document, FONTS.SCAN_LIST)');
+  }
+  for (const id of ['#font-scan', '#font-clear']) {
+    if (!optionsSrc.includes(`$('${id}').addEventListener`)) {
+      fail(`选项页的 ${id} 没有绑事件：按钮点了不会有任何反应`);
+    }
+  }
+  if (!/compose\/fonts\.js/.test(read('options/options.html'))) {
+    fail('options.html 没加载 compose/fonts.js：扫描按钮拿不到候选表');
+  }
+  if (!/compose\/fonts\.js/.test(read('background.js'))) {
+    fail('background.js 的 composeScripts 没注册 compose/fonts.js：撰写窗口的字体菜单会是空的');
+  }
+  console.log('   字体下拉：探测筛选 + 扫描结果 + 其他字体入口，两端键名一致');
 }
 
 console.log('\n' + (ok ? '全部通过' : '有失败项'));

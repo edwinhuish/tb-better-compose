@@ -338,6 +338,30 @@
   "font_more_hint": {
     "message": "如 FangSong，也可以貼整串 fallback"
   },
+  "sec_fonts": {
+    "message": "字型"
+  },
+  "opt_fonts_hint": {
+    "message": "Thunderbird 沒有提供列舉已安裝字型的介面，這裡用「量字寬」的辦法逐一核對內建候選表。結果會立即儲存，並出現在撰寫視窗的字型選單裡。"
+  },
+  "btn_font_scan": {
+    "message": "掃描系統字型"
+  },
+  "btn_font_clear": {
+    "message": "清除結果"
+  },
+  "font_scan_running": {
+    "message": "正在掃描…"
+  },
+  "font_scan_done": {
+    "message": "掃描到 $1 個字型（已在撰寫視窗生效）"
+  },
+  "font_scan_none": {
+    "message": "候選表裡一個都沒掃到 —— 可以用字型選單裡的「其他字型…」自己填名字"
+  },
+  "font_scan_cleared": {
+    "message": "已清除掃描結果"
+  },
 
   "grp_custom": {
     "message": "自訂"

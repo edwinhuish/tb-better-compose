@@ -34,12 +34,15 @@ function log(...args) {
       // inject.js 在启动时直接取用 ——
       //   config.js  → window.__tcsConfig   （默认值、白名单、校验）
       //   i18n.js    → window.__tcsI18n     （语言解析、文案加载）
+      //   fonts.js   → window.__tcsFonts    （字体候选表 + 量字宽探测）
       //   markdown.js→ window.__tcsMarkdown （md→HTML、粘贴检测）
       // 任何一个没加载，inject.js 都能自己降级：前两个缺了就不接管（编辑器
-      // 保持原样），markdown 缺了只是粘贴不转换。
+      // 保持原样），fonts 缺了字体菜单只剩「系统默认」「其他字体…」，
+      // markdown 缺了只是粘贴不转换。
       js: [
         { file: 'compose/config.js' },
         { file: 'compose/i18n.js' },
+        { file: 'compose/fonts.js' },
         { file: 'compose/markdown.js' },
         { file: 'compose/inject.js' },
       ],

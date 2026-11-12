@@ -41,6 +41,19 @@
     </label>
   </section>
 
+  <!-- 字体：Thunderbird 不给扩展枚举系统字体的接口，这里用"候选表 + 量字宽"的
+       办法问系统"这些族到底有没有"，结果作为缓存写进 storage，撰写窗口读它。 -->
+  <section class="card">
+    <h2 data-i18n="sec_fonts">Fonts</h2>
+    <p class="hint" data-i18n="opt_fonts_hint"></p>
+    <div class="row">
+      <button id="font-scan" type="button" data-i18n="btn_font_scan"></button>
+      <button id="font-clear" type="button" data-i18n="btn_font_clear"></button>
+      <span id="font-scan-status" class="hint" role="status" aria-live="polite"></span>
+    </div>
+    <p id="font-list" class="hint" hidden></p>
+  </section>
+
   <section class="card">
     <h2 data-i18n="sec_markdown">Markdown</h2>
     <label class="check">
@@ -106,6 +119,8 @@
      迟早会和编辑器那边说的不一样。 -->
 <script src="../compose/i18n.js"></script>
 <script src="../compose/config.js"></script>
+<!-- 字体候选表与探测：与撰写窗口同一份实现，两边不会给出不同答案 -->
+<script src="../compose/fonts.js"></script>
 <script src="options.js"></script>
 </body>
 </html>

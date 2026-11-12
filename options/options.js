@@ -365,6 +365,72 @@
     await save();
   }
 
+  // ── 8.5 字体扫描 ─────────────────────────────────────────────────────────
+  // Thunderbird 不给扩展枚举系统字体的接口（document.fonts 只有 @font-face 加载过的，
+  // navigator.fonts 是 Chromium 的，真正的 nsIFontEnumerator 要 chrome 特权）。
+  // 所以"扫描"= 拿候选表逐个量字宽，问系统"这个族到底有没有"。
+  //
+  // 结果是**缓存**，不是配置：它立即写 storage、不参与下面的保存/取消 ——
+  // 用户点完就该在撰写窗口生效，而不是还要记得点保存。撰写窗口读的是同一个键。
+  const FONTS = window.__tcsFonts;
+  const SCAN_KEY = 'composeStudio.fonts';
+
+  const setFontStatus = (text, kind) => {
+    const el = $('#font-scan-status');
+    el.textContent = text || '';
+    el.className = 'hint' + (kind ? ' ' + kind : '');
+  };
+
+  // 渲染结果：名单直接铺成一串（几十个名字进 <select> 反而不好找）。
+  // 返回找到的条数，给调用方决定状态文字。
+  const renderFontScan = data => {
+    const names = data && Array.isArray(data.names) ? data.names : [];
+    const list = $('#font-list');
+    list.textContent = names.join(' · ');
+    list.hidden = !names.length;
+    $('#font-clear').disabled = !names.length;
+    return names.length;
+  };
+
+  async function scanFonts() {
+    if (!FONTS) return;
+    $('#font-scan').disabled = true;
+    setFontStatus(t('font_scan_running'));
+    // 先让「正在扫描…」画出来：150 条 × 3 档量下来要两三百毫秒，
+    // 不先让出一次主线程的话，用户看到的是按钮卡住、没有任何反馈。
+    await new Promise(r => setTimeout(r, 16));
+    try {
+      const names = FONTS.detect(document, FONTS.SCAN_LIST);
+      await store.set({ [SCAN_KEY]: { names, at: Date.now() } });
+      renderFontScan({ names });
+      setFontStatus(names.length
+        ? t('font_scan_done', [String(names.length)])
+        : t('font_scan_none'));
+    } catch (e) {
+      console.error('[BetterCompose] 扫描字体失败:', e);
+      setFontStatus(t('status_error', [(e && e.message) || e]), 'warn');
+    }
+    $('#font-scan').disabled = false;
+  }
+
+  async function clearFontScan() {
+    try {
+      await store.remove(SCAN_KEY);
+    } catch (e) {
+      console.error('[BetterCompose] 清除字体扫描结果失败:', e);
+    }
+    renderFontScan(null);
+    setFontStatus(t('font_scan_cleared'));
+  }
+
+  try {
+    const got = await store.get(SCAN_KEY);
+    const found = renderFontScan(got && got[SCAN_KEY]);
+    if (found) setFontStatus(t('font_scan_done', [String(found)]));
+  } catch (e) {
+    console.error('[BetterCompose] 读字体扫描结果失败:', e);
+  }
+
   // ── 9. 事件 ─────────────────────────────────────────────────────────────
   $('#add-button').addEventListener('change', ev => {
     const token = ev.target.value;
@@ -414,6 +480,9 @@
   });
 
   $('#language').addEventListener('change', ev => switchLanguage(ev.target.value));
+
+  $('#font-scan').addEventListener('click', scanFonts);
+  $('#font-clear').addEventListener('click', clearFontScan);
 
   $('#save').addEventListener('click', save);
   $('#cancel').addEventListener('click', cancel);

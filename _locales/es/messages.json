@@ -338,6 +338,30 @@
   "font_more_hint": {
     "message": "p. ej. FangSong o una pila de reserva completa"
   },
+  "sec_fonts": {
+    "message": "Fuentes"
+  },
+  "opt_fonts_hint": {
+    "message": "Thunderbird no ofrece ninguna API para listar las fuentes instaladas, así que esto comprueba una lista de candidatas midiendo el ancho del texto. El resultado se guarda al instante y aparece en el menú de fuentes de la ventana de redacción."
+  },
+  "btn_font_scan": {
+    "message": "Buscar fuentes del sistema"
+  },
+  "btn_font_clear": {
+    "message": "Borrar resultado"
+  },
+  "font_scan_running": {
+    "message": "Buscando…"
+  },
+  "font_scan_done": {
+    "message": "Encontradas $1 fuentes — ya activas en las ventanas de redacción"
+  },
+  "font_scan_none": {
+    "message": "No se encontró ninguna candidata — escribe un nombre con «Otra fuente…» en el menú de fuentes"
+  },
+  "font_scan_cleared": {
+    "message": "Resultado borrado"
+  },
 
   "grp_custom": {
     "message": "Personalizado"
