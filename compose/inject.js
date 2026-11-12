@@ -629,8 +629,8 @@ let __tcsSay = null;
         const visible = v => v && v !== 'transparent' && !/rgba\(0,\s*0,\s*0,\s*0\)/.test(v);
         if (visible(f.fg)) ed.formatter.apply('forecolor', { value: f.fg });
         if (visible(f.bg)) ed.formatter.apply('hilitecolor', { value: f.bg });
-        if (f.fs) ed.formatter.apply('fontsize', { value: f.fs });
-        if (f.ff) ed.formatter.apply('fontname', { value: f.ff });
+        if (f.fs) ed.formatter.apply('tcs_size', { value: f.fs });
+        if (f.ff) ed.formatter.apply('tcs_font', { value: f.ff });
       };
 
       ed.ui.registry.addToggleButton('tcs_fp', {
@@ -881,7 +881,7 @@ let __tcsSay = null;
         item(text, () => (value ? ed.formatter.apply('hilitecolor', { value })
                                : ed.formatter.remove('hilitecolor'))))),
       group(t('fmt_size'), () => SIZES.map(v =>
-        item(v, () => ed.formatter.apply('fontsize', { value: v })))),
+        item(v, () => ed.formatter.apply('tcs_size', { value: v })))),
       sep,
       item(t('fmt_bold'), run('Bold'), 'bold'),
       item(t('fmt_italic'), run('Italic'), 'italic'),
@@ -964,6 +964,14 @@ let __tcsSay = null;
 
     // 下拉里勾出当前项：先按 keyOf 归一化再比，找不到就把第一项（默认/系统默认）
     // 勾上 —— 正文 14px = 10.5pt，不在 10/11/12 的清单里，那它确实就是“默认”。
+    //
+    // 两个细节都踩过，改之前看清楚：
+    //   · fmt 是**自己注册的** tcs_font / tcs_size，不是内置的 fontname / fontsize
+    //     （差别在 remove_similar，见 init 里 formats 那段注释）；
+    //   · 「系统默认」那一项走 remove 时**必须**带 similar=true。不带 vars 的
+    //     formatter.remove('fontname') 是静默无效的：格式定义里写的是 %value，
+    //     匹配不上任何值，于是"取消字体"点了什么都不发生 —— 也是用户看到的
+    //     「选了系统默认，邮件还是原字体」。
     const pick = (list, fmt, keyOf, currentKey) => cb => {
       const cur = currentKey();
       const keys = list.map(([, value]) => keyOf(value));
@@ -973,8 +981,11 @@ let __tcsSay = null;
         text,
         active: i === (at < 0 ? 0 : at),
         onAction: () => {
-          if (value) ed.formatter.apply(fmt, { value });
-          else ed.formatter.remove(fmt);
+          // 一次性进撤销栈：取消字体那一支是先清同类格式再套用，两步不能分开撤销
+          ed.undoManager.transact(() => {
+            if (value) ed.formatter.apply(fmt, { value });
+            else ed.formatter.remove(fmt, null, null, true);
+          });
           refreshValueLabels(ed);
         },
       })));
@@ -994,7 +1005,7 @@ let __tcsSay = null;
       text: t('font_system'),
       tooltip: t('tb_font_tip'),
       fetch: pick(
-        FONTS, 'fontname',
+        FONTS, 'tcs_font',
         value => (value ? firstFamily(value) : none),
         currentFontKey
       ),
@@ -1004,7 +1015,7 @@ let __tcsSay = null;
       text: '10.5pt',
       tooltip: t('tb_size_tip'),
       fetch: pick(
-        FONT_SIZES, 'fontsize',
+        FONT_SIZES, 'tcs_size',
         value => value || none,
         currentSizeKey
       ),
@@ -1396,6 +1407,32 @@ let __tcsSay = null;
     // margin，存出去也不再是每行一个 <p>。改成 'p' 就是回到 TB 的「段落」，
     // 想要真正的段间距时才这么配。
     forced_root_block: cfg.defaultBlockFormat,
+
+    // 字体 / 字号用自己注册的格式，而不是内置的 fontname / fontsize。两者只差一个
+    // remove_similar，而它正是「换了字体却没反应」的开关：
+    // 内置那两条没有 remove_similar，套用时就只是**再包一层** span，
+    // 内层元素自己写着的 font-family / font-size 照样优先。引用原文、转发来的邮件
+    // 里几乎每段都自带 font-family，于是「全选 → 宋体」看上去什么都没发生，
+    // 源码里则是一串新旧混着的声明。format-painter 取样后刷到引用正文上也一样。
+    //
+    // 带上 remove_similar 后，套用前会先把选区里同类的声明整个清掉（只清这一条
+    // CSS，颜色、其它字号声明都留着），整段于是只剩一个新声明。只与选区相交一部分
+    // 的元素由 formatter 自己拆开，选区外的文字不受影响（实测：AAAABBBB 里只选
+    // AAAA，BBBB 仍是原字体）。clear_child_styles 一并留着，兜住新包装元素内部
+    // 还有同类声明的边角情况。
+    //
+    // 「系统默认」那一项靠 formatter.remove(name, null, null, true)：不带 vars 的
+    // remove 对带 %value 的格式是静默无效的（匹配不上任何值），别改回去。
+    formats: {
+      tcs_font: {
+        inline: 'span', styles: { fontFamily: '%value' },
+        clear_child_styles: true, remove_similar: true,
+      },
+      tcs_size: {
+        inline: 'span', styles: { fontSize: '%value' },
+        clear_child_styles: true, remove_similar: true,
+      },
+    },
 
     // 色板就是上面那份 PALETTE（22 色），和菜单里的「文字颜色」是同一组值。
     // 两个按钮是**拆分按钮**：主键套用上次的颜色、箭头开色板；命令 mceApplyTextcolor /

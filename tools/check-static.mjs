@@ -480,5 +480,51 @@ if (!/selector:\s*'#tcs-content'/.test(inject) ||
 }
 console.log('   工具栏选择器:', cssSelectors.length, '条，全部限定在 #tcs-toolbar 内，且不声明字号');
 
+// ── 13. 字体 / 字号必须盖得住已有的行内声明 ─────────────────────────────────
+// 用户报的现象：全选邮件换字体，邮件还是原字体，而源码里每段都带着自己的
+// font-family。根子不在 formatter 不干活，而在内置的 fontname / fontsize 没有
+// remove_similar —— 它们只会**再包一层** span，内层元素自己的声明照样优先。
+// 引用原文、转发来的邮件里几乎每段都自带 font-family，于是这条"再包一层"的路径
+// 在真实邮件上基本等于没生效。
+//
+// 代价这一侧也得钉住：改成 remove_similar 之后，套用前会先清掉选区里同类的声明
+// （只清那一条 CSS），所以「系统默认」那一项必须走 remove(name, null, null, true)
+// —— 不带 similar 的 remove 对 %value 格式是**空操作**（匹配不上任何值）。
+// 这三件事都只表现成"点了没反应"，不靠断言记住的话下次重构一定会丢。
+section('[13] 字体覆盖');
+const stripComments = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+const injectCode = stripComments(inject);
+const formatsAt = injectCode.indexOf('formats: {');
+const formatsBlock = formatsAt >= 0
+  ? injectCode.slice(formatsAt, injectCode.indexOf('color_map', formatsAt))
+  : '';
+if (!formatsBlock) {
+  fail('init 里找不到 formats（tcs_font / tcs_size 必须自己注册，别退回内置的 fontname / fontsize）');
+} else {
+  for (const name of ['tcs_font', 'tcs_size']) {
+    const at = formatsBlock.indexOf(name + ':');
+    if (at < 0) {
+      fail(`formats 里缺 ${name}`);
+      continue;
+    }
+    const block = formatsBlock.slice(at, at + 300);
+    if (!/remove_similar:\s*true/.test(block)) {
+      fail(`${name} 必须带 remove_similar: true：缺了它，换字体只是再包一层 span，内层声明照样优先`);
+    }
+    if (!/clear_child_styles:\s*true/.test(block)) {
+      fail(`${name} 必须带 clear_child_styles: true：兜住新包装元素内部残留的同类声明`);
+    }
+  }
+}
+const legacyFmts = [...injectCode.matchAll(/formatter\.(?:apply|remove)\(\s*'(fontname|fontsize)'/g)]
+  .map(m => m[1]);
+if (legacyFmts.length) {
+  fail('字体 / 字号一律走 tcs_font / tcs_size，不要再调内置的 ' + [...new Set(legacyFmts)].join(' / '));
+}
+if (!/formatter\.remove\(fmt, null, null, true\)/.test(injectCode)) {
+  fail('「系统默认」必须 remove(name, null, null, true)：不带 similar 的 remove 对 %value 格式是空操作');
+}
+console.log('   tcs_font / tcs_size 覆盖已有声明，且「系统默认」能真的撤掉');
+
 console.log('\n' + (ok ? '全部通过' : '有失败项'));
 process.exit(ok ? 0 : 1);
