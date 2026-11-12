@@ -33,6 +33,19 @@
      实测：overflow:hidden 时菜单 rect 顶边 1px、整块 252px 高，
      elementFromPoint 打在菜单底部命中的是正文。 */
   overflow: visible;
+  /* 工具栏不属于正文：禁止选中。从正文往上拖选时，选区会顺着长到工具栏上，
+     接着输入 / 粘贴 / 退格就可能把那截跨界选区替换掉（少几个按钮）。
+     user-select 可继承，所以进了 shadow root（这条规则变成 :host）之后，
+     里面那些按钮、菜单、SVG 一并沿用。inject.js 的 hardenToolbar 是它的
+     事件层兜底：属性 + 这里挡住的就是"浏览器层"，事件层只管剩下的边角。 */
+  user-select: none;
+}
+
+/* 弹出层里的输入框要能选字：表情搜索、自定义颜色的 hex、源码对话框的 textarea。
+   user-select 可继承，不放行的话这些框里连选中一个数字都做不到。 */
+#tcs-toolbar input,
+#tcs-toolbar textarea {
+  user-select: text;
 }
 
 #tcs-toolbar .tox-tinymce {

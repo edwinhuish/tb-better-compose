@@ -258,11 +258,74 @@ let __tcsSay = null;
   cleanStale();
   if (cfg.debug) snapshotImages('接管前');
 
+  // ── 工具栏的「不可编辑」防线 ──────────────────────────────────────────────
+  // 工具栏和正文同在一个文档里，物理上只是一个普通盒子。一旦浏览器把它当成可编辑
+  // 内容的一部分，出问题的样子都像「编辑器坏了」，而且很难从现象反推回来：
+  //   · 从正文往工具栏方向拖选，选区跨到工具栏上 —— 接着输入 / 粘贴 / 退格，
+  //     轻则什么也不发生，重则把那截跨界选区替换掉，工具栏少几个按钮；
+  //   · 把按钮或图标拖进正文 —— 正文里掉进一个 <button> 或裸 SVG，排版全乱；
+  //   · 光标落进工具栏（点空白处、Tab 进去）再打字 —— 字没出来，用户以为输入失效。
+  // 三道防线，属性最弱、事件最硬：
+  //   1. 属性：contenteditable / draggable / spellcheck —— 浏览器据此决定它算不算
+  //      可编辑内容。TB 重写 body、shadow 回滚之后都要重设，所以写成幂等函数。
+  //   2. CSS（shell.css）：user-select:none —— 选区根本长不过去；输入框单独放行。
+  //   3. 事件：拦 beforeinput / input / paste / cut / drop / dragover / dragstart。
+  //      **不拦 keydown**：菜单的方向键、回车、Esc 全走它，拦了菜单就是"点了没反应"。
+  //      输入框（表情搜索、自定义颜色的 hex、源码对话框的 textarea）按 composedPath
+  //      放行 —— 事件到宿主身上时 target 已被重定向成宿主本身，只看 target 会把
+  //      「在搜索框里打字」一起拦掉。
+  function hardenToolbar(el, root) {
+    if (!el) return;
+    el.setAttribute('contenteditable', 'false');
+    el.setAttribute('draggable', 'false');
+    el.setAttribute('spellcheck', 'false');
+    el.setAttribute('data-tcs-ui', '1');
+
+    // 弹出层里的输入框（表情搜索、自定义颜色的 hex、源码对话框的 textarea）自己要用。
+    // 第三条是留给"将来 TinyMCE 在 UI 里塞了个 contenteditable 区"的情况 —— 现在没有，
+    // 但拦掉它只会让人莫名其妙地打不进字。
+    const isField = n => n && n.nodeType === 1 &&
+      (n.nodeName === 'INPUT' || n.nodeName === 'TEXTAREA' ||
+       n.getAttribute('contenteditable') === 'true');
+    const block = ev => {
+      const path = typeof ev.composedPath === 'function' ? ev.composedPath() : [];
+      if (path.some(isField)) return;          // 弹出层里的输入框自己要用
+      ev.preventDefault();
+      ev.stopPropagation();
+    };
+    const EVENTS = ['beforeinput', 'input', 'paste', 'cut', 'drop', 'dragover', 'dragstart'];
+
+    // 只挂一次：宿主被搬进 shadow、被 TB 重写 body 又挂回来，元素始终是同一个
+    if (!el.__tcsGuarded) {
+      el.__tcsGuarded = true;
+      EVENTS.forEach(type => el.addEventListener(type, block, true));
+    }
+    // shadow 里再挂一份：搬进去之后 light DOM 这一层就没内容了，而事件到宿主时
+    // target 已被重定向，宿主那份监听分不清"点按钮"和"在搜索框里打字"。
+    const sr = root || el.shadowRoot;
+    if (sr && !sr.__tcsGuarded) {
+      sr.__tcsGuarded = true;
+      EVENTS.forEach(type => sr.addEventListener(type, block, true));
+    }
+    // 属性看住：宿主一旦被改回可编辑，上面两条就全落空。只盯这两个属性、不盯子树
+    // —— TinyMCE 每次开合菜单都在子树里写几十个节点，盯子树等于给主线程加班。
+    if (!el.__tcsAttrWatch) {
+      el.__tcsAttrWatch = new MutationObserver(() => {
+        if (el.getAttribute('contenteditable') !== 'false') {
+          el.setAttribute('contenteditable', 'false');
+        }
+        if (el.getAttribute('data-tcs-ui') !== '1') el.setAttribute('data-tcs-ui', '1');
+      });
+      el.__tcsAttrWatch.observe(el, {
+        attributes: true, attributeFilter: ['contenteditable', 'data-tcs-ui'],
+      });
+    }
+  }
+
   // ── 搭壳：一行工具栏 + 正文容器 ───────────────────────────────────────────
   const toolbarEl = document.createElement('div');
   toolbarEl.id = 'tcs-toolbar';
-  toolbarEl.setAttribute('data-tcs-ui', '1');
-  toolbarEl.contentEditable = 'false';
+  hardenToolbar(toolbarEl);
 
   const contentEl = document.createElement('div');
   contentEl.id = 'tcs-content';
@@ -338,7 +401,9 @@ let __tcsSay = null;
         document.body.insertBefore(toolbarEl, document.body.firstChild);
       }
       if (!document.body.contains(contentEl)) document.body.appendChild(contentEl);
+      // TB 重写 body 时若把 contenteditable 设回 true，工具栏会被一起卷进去
       applyBodyLayout();
+      hardenToolbar(toolbarEl);
       // 编辑器可能已经就绪（只是容器被搬家）：叫它刷一次选区与高度，
       // 否则工具栏的启用态和正文可视高度会停在被冲掉之前的样子。
       const ed = tmce && tmce.activeEditor;
@@ -1271,6 +1336,9 @@ let __tcsSay = null;
       return false;
     }
 
+    // 换到 shadow 里之后事件要再挂一份（light DOM 那一层已经空了），属性也重设一遍
+    hardenToolbar(host, root);
+
     // sliding 是按宽度决定哪些按钮收进「更多」的，换父节点后让它重算一次
     try { ed.fire('ResizeContent'); ed.dispatch('resize'); } catch (e) {}
     log('工具栏已搬进 shadow root（草稿里不会再有 TinyMCE 的 DOM），按钮 ' +
@@ -1304,6 +1372,8 @@ let __tcsSay = null;
     Array.from(root.childNodes).forEach(n => {
       if (n.nodeName !== 'STYLE' && n.nodeName !== 'SLOT') host.appendChild(n);
     });
+    // 回到 light DOM 就是"正文档里的一个盒子"，防线得重新确认在位
+    hardenToolbar(host);
   }
 
   // 工具栏不是 init 事件那一刻就有节点的：TinyMCE 把 UI 渲染排在 init 之后，

@@ -526,5 +526,50 @@ if (!/formatter\.remove\(fmt, null, null, true\)/.test(injectCode)) {
 }
 console.log('   tcs_font / tcs_size 覆盖已有声明，且「系统默认」能真的撤掉');
 
+// ── 14. 工具栏不可编辑 ─────────────────────────────────────────────────────
+// 工具栏和正文同在一个文档里，物理上只是个普通盒子。被正文档的编辑操作碰到之后，
+// 出问题的样子都像「编辑器坏了」，而且反推不回来：
+//   · 拖选跨界 → 选区长到工具栏上，接着输入/退格就吃掉几个按钮；
+//   · 把按钮拖进正文 → 正文里掉进 <button> / 裸 SVG；
+//   · 光标落进工具栏再打字 → 字没出来。
+// 挡住它的是三处配合，缺一处就漏：
+//   A. shell.css 根规则 user-select:none（输入框单独放行，否则搜索框没法选字）；
+//   B. inject.js 的 hardenToolbar 在四个时机都调过（搭壳、搬进 shadow、回滚、body 重写）；
+//   C. 事件清单里**不能有 keydown** —— 菜单的方向键 / 回车 / Esc 全靠它，
+//      拦了就是"点了菜单没反应"。这条最容易在"顺手多加一个"时破掉。
+section('[14] 工具栏不可编辑');
+{
+  const toolbarRule = /#tcs-toolbar\s*\{([^}]*)\}/.exec(cssRules);
+  if (!toolbarRule) {
+    fail('shell.css 里找不到 #tcs-toolbar 根规则');
+  } else if (!/user-select:\s*none/.test(toolbarRule[1])) {
+    fail('#tcs-toolbar 必须 user-select:none：否则拖选能长到工具栏上，接着的输入/退格会吃掉它');
+  }
+  if (!/#tcs-toolbar\s+input\b[^{]*\{[^}]*user-select:\s*text/.test(cssRules)) {
+    fail('弹出层里的 input / textarea 必须放行 user-select:text（表情搜索、颜色 hex、源码框要能选字）');
+  }
+  for (const call of ['hardenToolbar(toolbarEl)', 'hardenToolbar(host, root)', 'hardenToolbar(host)']) {
+    if (!injectCode.includes(call)) {
+      fail(`inject.js 里少了 ${call}：工具栏的不可编辑防线要在每个挂载点重设`);
+    }
+  }
+  const eventsAt = injectCode.indexOf('function hardenToolbar');
+  const eventsList = eventsAt >= 0 ? injectCode.slice(eventsAt).match(/EVENTS = \[([^\]]*)\]/) : null;
+  if (!eventsList) {
+    fail('hardenToolbar 里找不到拦截的事件清单（EVENTS）');
+  } else {
+    const names = [...eventsList[1].matchAll(/'([a-z]+)'/g)].map(m => m[1]);
+    for (const need of ['beforeinput', 'input', 'paste', 'cut', 'drop', 'dragover', 'dragstart']) {
+      if (!names.includes(need)) fail(`hardenToolbar 少了事件 ${need}`);
+    }
+    for (const forbidden of ['keydown', 'keypress']) {
+      if (names.includes(forbidden)) {
+        fail(`hardenToolbar 不许拦 ${forbidden}：菜单的方向键 / 回车 / Esc 全靠它`);
+      }
+    }
+  }
+  console.log('   user-select:none + 事件拦截，keydown 留给菜单');
+}
+
 console.log('\n' + (ok ? '全部通过' : '有失败项'));
 process.exit(ok ? 0 : 1);
