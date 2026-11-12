@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "KaiTi"
   },
+  "font_more": {
+    "message": "Otra fuente…"
+  },
+  "font_more_title": {
+    "message": "Otra fuente"
+  },
+  "font_more_label": {
+    "message": "Familia tipográfica"
+  },
+  "font_more_hint": {
+    "message": "p. ej. FangSong o una pila de reserva completa"
+  },
 
   "grp_custom": {
     "message": "Personalizado"

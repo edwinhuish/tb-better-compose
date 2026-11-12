@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "KaiTi"
   },
+  "font_more": {
+    "message": "その他のフォント…"
+  },
+  "font_more_title": {
+    "message": "その他のフォント"
+  },
+  "font_more_label": {
+    "message": "フォント名"
+  },
+  "font_more_hint": {
+    "message": "例: FangSong、フォールバック込みの指定も可"
+  },
 
   "grp_custom": {
     "message": "カスタム"

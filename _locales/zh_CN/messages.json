@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "楷体"
   },
+  "font_more": {
+    "message": "其他字体…"
+  },
+  "font_more_title": {
+    "message": "其他字体"
+  },
+  "font_more_label": {
+    "message": "字体名"
+  },
+  "font_more_hint": {
+    "message": "如 FangSong，也可以粘整串 fallback"
+  },
 
   "grp_custom": {
     "message": "自定义"

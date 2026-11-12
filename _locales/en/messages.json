@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "KaiTi"
   },
+  "font_more": {
+    "message": "Other font…"
+  },
+  "font_more_title": {
+    "message": "Other font"
+  },
+  "font_more_label": {
+    "message": "Font family"
+  },
+  "font_more_hint": {
+    "message": "e.g. FangSong, or a full fallback stack"
+  },
 
   "grp_custom": {
     "message": "Custom"

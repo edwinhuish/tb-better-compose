@@ -618,5 +618,57 @@ section('[15] 「已修改」标记');
   console.log('   clearModified 两端齐、只带 isModified、两条护栏在位');
 }
 
+// ── 16. 字体清单 ─────────────────────────────────────────────────────────
+// Gecko 枚举不了系统字体（document.fonts 只有 @font-face 加载过的，
+// navigator.fonts 是 Chromium 的），所以清单只能是写死的候选 + 量字宽筛选 +
+// 「其他字体…」自由填。三个不变式：
+//   A. 每条候选的 font-family 串末尾必须是通用族 —— 收件端没有这个字时才按同类回退，
+//      而不是掉到它自己的默认字体上（"字体没生效"就是这么来的）；
+//   B. 字体下拉必须经过探测筛选（installedFonts），不能直接把候选表全列出来 ——
+//      没装的字点了只会静默回退，用户看到的是"选了没反应"；
+//   C. 必须留「其他字体…」入口。探测只能证明"候选里的装没装"，候选之外的字全靠它。
+section('[16] 字体清单');
+{
+  const at = injectCode.indexOf('const FONT_CANDIDATES = [');
+  const block = at >= 0 ? injectCode.slice(at, injectCode.indexOf('];', at)) : '';
+  if (!block) {
+    fail('inject.js 里找不到 FONT_CANDIDATES');
+  } else {
+    // 每条候选的形状是 [标签, font-family 串 | null, 短标签]，串里可能带逗号和引号，
+    // 所以按「第一个元素、第二个元素」的结构取，别去扫引号（扫引号会跨条目错配）。
+    const stacks = [...block.matchAll(/\[\s*[^,\]]+,\s*'([^']*)'\s*,/g)].map(m => m[1]);
+    const generic = ['serif', 'sans-serif', 'monospace'];
+    let bad = 0;
+    for (const stack of stacks) {
+      const last = stack.split(',').pop().trim();
+      if (!generic.includes(last)) {
+        fail(`候选字体 ${stack} 的 stack 没以通用族结尾（当前是 "${last}"）`);
+        bad++;
+      }
+    }
+    if (!stacks.length) fail('一条候选的 font-family 串都没解析出来（表结构变了？）');
+    else if (!bad) console.log('   ', stacks.length, '条候选的 stack 全部以通用族收尾');
+  }
+  const menuAt = injectCode.indexOf('function fontMenuItems');
+  const menu = menuAt >= 0 ? injectCode.slice(menuAt, menuAt + 900) : '';
+  if (!menu) {
+    fail('inject.js 里找不到 fontMenuItems');
+  } else {
+    if (!menu.includes('installedFonts(')) {
+      fail('fontMenuItems 必须用 installedFonts() 筛过：没装的字点了只会静默回退');
+    }
+    if (!/t\('font_more'\)/.test(menu)) {
+      fail('fontMenuItems 少了「其他字体…」入口：候选之外的字就没路可走了');
+    }
+  }
+  const btnAt = injectCode.indexOf("addMenuButton('tcs_font'");
+  const btn = btnAt >= 0 ? injectCode.slice(btnAt, btnAt + 400) : '';
+  if (!btn) fail('找不到 tcs_font 的注册');
+  else if (!btn.includes('fontMenuItems(')) {
+    fail('tcs_font 必须走 fontMenuItems（按探测结果现算），不能退回静态 pick 列表');
+  }
+  console.log('   字体下拉：探测筛选 + 通用族兜底 + 其他字体入口');
+}
+
 console.log('\n' + (ok ? '全部通过' : '有失败项'));
 process.exit(ok ? 0 : 1);

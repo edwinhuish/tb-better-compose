@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "KaiTi"
   },
+  "font_more": {
+    "message": "其他字型…"
+  },
+  "font_more_title": {
+    "message": "其他字型"
+  },
+  "font_more_label": {
+    "message": "字型名稱"
+  },
+  "font_more_hint": {
+    "message": "如 FangSong，也可以貼整串 fallback"
+  },
 
   "grp_custom": {
     "message": "自訂"

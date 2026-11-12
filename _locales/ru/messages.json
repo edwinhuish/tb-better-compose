@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "KaiTi"
   },
+  "font_more": {
+    "message": "Другой шрифт…"
+  },
+  "font_more_title": {
+    "message": "Другой шрифт"
+  },
+  "font_more_label": {
+    "message": "Семейство шрифтов"
+  },
+  "font_more_hint": {
+    "message": "напр. FangSong или вся цепочка резервных"
+  },
 
   "grp_custom": {
     "message": "Свои"

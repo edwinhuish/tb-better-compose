@@ -326,6 +326,18 @@
   "font_kai_ti_short": {
     "message": "KaiTi"
   },
+  "font_more": {
+    "message": "Autre police…"
+  },
+  "font_more_title": {
+    "message": "Autre police"
+  },
+  "font_more_label": {
+    "message": "Famille de polices"
+  },
+  "font_more_hint": {
+    "message": "ex. FangSong, ou une pile de secours complète"
+  },
 
   "grp_custom": {
     "message": "Personnalisé"
