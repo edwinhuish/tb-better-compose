@@ -571,5 +571,52 @@ section('[14] 工具栏不可编辑');
   console.log('   user-select:none + 事件拦截，keydown 留给菜单');
 }
 
+// ── 15. 「已修改」标记要还回去，但不能洗掉用户刚打的字 ─────────────────────
+// 我们搭壳、搬内容、init TinyMCE 必然动过文档，而 TB 判"改没改"看的是编辑器的事务
+// 计数（nsMsgCompose::GetBodyModified → editor.documentModified）——于是新建一封空
+// 邮件、一个字没输，关窗口也会问「要不要存草稿」。
+//
+// 清零只有一条通道：compose API 的 setComposeDetails({ isModified: false })
+// （ext-compose.js 里那段注释就是官方口径：要压掉关闭确认，得把所有触发点设 false）。
+// 但这东西用错地方就是数据丢失 —— 把标记抹掉的瞬间，用户刚打的字也不再"需要保存"。
+// 所以三件事必须同时成立，缺一处都会静默出问题：
+//   A. 两端都在：inject.js 发 clearModified，background.js 收下并调 API；
+//   B. 只带 isModified：带 body 会走 flushContent 那条路，TB 重绘正文、TinyMCE 的 DOM 全没；
+//   C. clearModified 里有两条护栏（userTouched / hasUndo），少一条就可能吃掉刚打的字。
+section('[15] 「已修改」标记');
+{
+  const bg = stripComments(read('background.js'));
+  if (!/case 'clearModified'/.test(bg)) {
+    fail('background.js 里没有 clearModified 分支：空邮件关窗口仍会被问要不要存草稿');
+  }
+  if (!/setComposeDetails\(tabId,\s*\{\s*isModified:\s*false\s*\}\)/.test(bg)) {
+    fail('clearModified 必须调 setComposeDetails(tabId, { isModified: false })，且不能顺手带上 body');
+  }
+  const fnAt = injectCode.indexOf('function clearModified');
+  const fnBlock = fnAt >= 0 ? injectCode.slice(fnAt, fnAt + 800) : '';
+  if (!fnBlock) {
+    fail('inject.js 里找不到 clearModified');
+  } else {
+    if (!fnBlock.includes('userTouched')) {
+      fail('clearModified 少了 userTouched 护栏：用户动过内容就绝不能清「已修改」标记');
+    }
+    if (!/hasUndo\(\)/.test(fnBlock)) {
+      fail('clearModified 少了 hasUndo() 护栏：撤销栈里已有改动时同样不能清');
+    }
+    if (!/action:\s*'clearModified'/.test(fnBlock)) {
+      fail('clearModified 没有把消息发给 background（port.postMessage 丢了？）');
+    }
+  }
+  // userTouched 的绑定清单里不能有 ExecCommand：TinyMCE 在 init 期间自己就会派发它，
+  // 挂上去等于开局就置 true，那次 clearModified 永远不跑 —— 症状和没修一样。
+  const touchedBinding = /ed\.on\('([^']*)',\s*markTouched\)/.exec(injectCode);
+  if (!touchedBinding) {
+    fail('inject.js 里找不到 markTouched 的绑定点');
+  } else if (/execCommand/i.test(touchedBinding[1])) {
+    fail('markTouched 不能绑 ExecCommand：init 期间就会被派发，userTouched 永远是 true');
+  }
+  console.log('   clearModified 两端齐、只带 isModified、两条护栏在位');
+}
+
 console.log('\n' + (ok ? '全部通过' : '有失败项'));
 process.exit(ok ? 0 : 1);

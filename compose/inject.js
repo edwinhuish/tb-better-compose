@@ -379,6 +379,43 @@ let __tcsSay = null;
   // 发送中不要复位：prepareForSend 是故意把工具栏/弹出层摘掉的。
   let sending = false;
 
+  // 用户到底动没动过内容。只读的初始化不算，任何一次真正的编辑都置 true，
+  // 且**只进不出** —— 它唯一的用途是拦住下面 clearModified 把「已修改」标记
+  // 抹掉（抹了以后关窗口不提示，用户刚打的字会跟着窗口一起消失）。
+  let userTouched = false;
+  const markTouched = () => { userTouched = true; };
+
+  // ── 把 TB 的「已修改」标记还回 false ──────────────────────────────────────
+  // 现象：新建一封空邮件，一个字没输，关窗口也问「要不要存草稿」，自动保存的
+  // 计时器也跟着转。
+  //
+  // 原因不在我们"往草稿里写了东西"，而在**动过文档**这件事本身：TB 判不判"改过"
+  // 看的是编辑器的事务计数（nsMsgCompose::GetBodyModified → editor.documentModified），
+  // 而我们在 TB 的 resetModificationCount() **之后**必须再动一遍文档 ——
+  // 搭壳（把 body 的子节点搬进 #tcs-content）、给正文补图片属性、TinyMCE init，
+  // 任何一步都足以让它不再是 0。
+  //
+  // 清零只有一条通道：compose API 的 setComposeDetails({ isModified: false })。
+  // ext-compose.js 里那段注释写得很直白 ——「要压掉关闭确认，得把所有触发点都设
+  // false」——它清的是 gContentChanged / bodyModified / gReceiptOptionChanged /
+  // gDSNOptionChanged 四个。只带 isModified 时它**不会重写正文**（正文那一支要
+  // typeof details.body == 'string'），所以 TinyMCE 的 DOM 不会因此被冲掉。
+  //
+  // 两个时机：init 收尾一次（新写信），TB 重写 body 之后一次（回复/转发，引用正文
+  // 迟到）。两次都在窗口刚打开的那一两秒里，之后再也不碰这个标记。
+  //
+  // 两条护栏，缺一条就可能吃掉用户刚打的字：userTouched 为真不动；
+  // 撤销栈里已经有一层改动（hasUndo）也不动 —— init 完就是 false，实测过。
+  function clearModified() {
+    if (userTouched) return;
+    const ed = tmce && tmce.activeEditor;
+    if (ed && ed.undoManager && ed.undoManager.hasUndo()) return;
+    try {
+      port.postMessage({ action: 'clearModified' });
+      log('「已修改」标记已还回 false（内容与刚打开时一致）');
+    } catch (e) {}
+  }
+
   // 守卫：TB 只要重写 body（回复/转发的引用原文迟到、切换引用方式、插入签名、
   // 新写信件第一次落内容），我们插的两个节点就会被一起冲掉 —— 编辑器于是绑在
   // 一个脱离文档的容器上，表现成「工具栏在、正文没了」或「一直加载中」。
@@ -411,6 +448,9 @@ let __tcsSay = null;
         try { ed.nodeChanged(); ed.fire('ResizeContent'); } catch (e) {}
       }
       log('body 被外部重写，已挂回工具栏与正文容器（收进 ' + stray.length + ' 个节点）');
+      // 这一次搬家同样会点亮「已修改」，引用正文迟到的那一版尤其明显：
+      // TB 自己写完正文是清过标记的，我们紧接着又搬了一次。
+      setTimeout(clearModified, 100);
     };
     // 一次重写会连着来好几条 mutation，合并成一次
     new MutationObserver(debounce(reattach, 0)).observe(document.body, { childList: true });
@@ -1634,6 +1674,19 @@ let __tcsSay = null;
           markAllImages(ed.getBody());
           sync();
         });
+
+        // 「用户动过内容」的判据。input 只在实际改动时触发；工具栏那几下走
+        // FormatApply，或者干脆只留一层撤销（由 clearModified 里的 hasUndo 兜）。
+        // ⚠️ 这里**不能**监听 ExecCommand：TinyMCE 在 init 期间自己就会派发它，
+        // 挂上去等于开局就把 userTouched 置 true，下面那次 clearModified 永远不跑，
+        // 空邮件关窗口照样问存不存草稿（实测 init 后 800ms 内能收到一条 execcommand）。
+        // SetContent 同理不算 —— 那是 TB 把引用正文灌进来，不是用户动的手。
+        ed.on('input paste drop FormatApply Undo Redo', markTouched);
+
+        // init 这一趟自己的写入同样会让 TB 觉得"改过"，收尾时把标记还回去 ——
+        // 否则新建空邮件、一个字没输，关窗口也会问要不要存草稿。
+        // 300ms 是给 TinyMCE 的收尾写入（图片属性、选中态）留的余量。
+        setTimeout(clearModified, 300);
 
         // 图在 init 之后才陆续加载完：先给引用原文的图一次重试，再看状态
         setTimeout(() => {

@@ -307,6 +307,33 @@ compose API 又只有 `onAfterSave`、没有「保存之前」的事件。
 `tools/check-static.mjs` 第 14 节钉住：`user-select` 的两条规则、四个 `hardenToolbar` 调用点、
 事件清单必须齐全且**不含** `keydown` / `keypress`。
 
+### 空邮件不该被问「要不要存草稿」
+
+新建一封邮件、一个字没输就关窗口，TB 不该问「保存草稿吗」。但**动过文档**这件事本身就被
+TB 记成「用户改过」：`nsMsgCompose::GetBodyModified` 读的是编辑器的事务计数
+（`editor.documentModified`），而我们在 TB 的 `resetModificationCount()` **之后**还得再动
+一遍文档 —— 搭壳（把 body 的子节点搬进 `#tcs-content`）、补图片属性、TinyMCE init，任何一步
+都足以让它不再是 0。自动保存的计时器也跟着空转。
+
+清零只有一条通道：compose API 的 `setComposeDetails({ isModified: false })`。
+`ext-compose.js` 里那段注释就是官方口径 ——「要压掉关闭确认，得把所有触发点都设 false」，
+它清的是 `gContentChanged` / `bodyModified` / `gReceiptOptionChanged` / `gDSNOptionChanged`。
+**只带 `isModified`** 时它不会重写正文（正文那一支要求 `typeof details.body == 'string'`），
+所以不会像 `flushContent` 那样把 TinyMCE 的 DOM 冲掉。
+
+时机两处：init 收尾（新写信）、TB 重写 body 之后（回复 / 转发，引用正文迟到）。两次都在窗口
+刚打开的那一两秒里，之后再也不碰这个标记。
+
+两条护栏，少一条就可能吃掉用户刚打的字（标记被抹掉 = 关窗口不提示 = 内容跟窗口一起消失）：
+
+- `userTouched`：`input` / `paste` / `drop` / `FormatApply` / `Undo` / `Redo` 任一出现就不清。
+  **不能监听 `ExecCommand`** —— TinyMCE 在 init 期间自己就会派发它，挂上去等于开局把
+  `userTouched` 置 true，那次清零永远不跑，症状和没修一样。工具栏按钮的改动由下一条兜住。
+- `ed.undoManager.hasUndo()`：撤销栈里已经有一层改动就不清。init 完是 `false`（实测）。
+
+`tools/check-static.mjs` 第 15 节钉住：两端都在、只带 `isModified`、两条护栏在位，
+且 `markTouched` 没绑 `ExecCommand`。
+
 ---
 
 ## 6. 回复 / 转发与注入时序
@@ -776,6 +803,10 @@ pnpm run build     # → dist/better-compose-<version>.xpi
 
     应一次变成：`h2` 标题 + 三项列表（第二项带删除线）+ 带边框表格（单价列右对齐）。
     再粘一段普通文字，必须原样进来；粘错了按一次 `Ctrl+Z` 退回粘贴之前。
+18. **空邮件不提示存草稿**：新开一个撰写窗口，什么都不输入直接关闭 —— 不应弹「保存草稿」；
+    回复一封邮件、同样什么都不输入就关，也不应弹。
+    **但输入一个字再关必须弹** —— 标记被错误清零的话，这一步会把字一起丢掉
+    （见第 5 节「空邮件不该被问『要不要存草稿』」）。
 
 确认图片真的走了 TB 通路：把信发给自己，收件箱源码里应出现
 `Content-Type: multipart/related` 与 `Content-ID: <…>`，正文里是 `cid:…`

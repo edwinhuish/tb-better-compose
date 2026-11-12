@@ -86,6 +86,18 @@ browser.runtime.onConnect.addListener(port => {
         cache.set(tabId, msg.html);
         break;
 
+      // 把「已修改」标记还回 false：我们搭壳 / init 动过文档，TB 就认为用户改过，
+      // 于是空邮件关窗口也问要不要存草稿。只带 isModified 时 setComposeDetails
+      // **不会重写正文**（正文那一支要求 typeof details.body == 'string'），
+      // 所以不会像 flushContent 那样把 TinyMCE 的 DOM 冲掉。
+      case 'clearModified':
+        try {
+          await browser.compose.setComposeDetails(tabId, { isModified: false });
+        } catch (e) {
+          console.error('[BetterCompose] 清除「已修改」标记失败:', e);
+        }
+        break;
+
       // 存草稿等 TB 内部路径直接读 DOM 时，需要立刻落盘
       case 'flushContent':
         cache.set(tabId, msg.html);
